@@ -15,16 +15,16 @@ line_w = 1.5;
 
 %
 %% ##############  Parametros de Entrada  ############## 
-M = 2;                  % Nьvel da modulaусo
-k = log2(M);            % bits por sьmbolo (=1 para M = 2)
-n = 3e4;                % Numero de bits da Sequencia (Bitstream)
+M = 2;                  % Nível da modulação
+k = log2(M);            % bits por símbolo (=1 para M = 2)
+n = 3e5;                % Numero de bits da Sequencia (Bitstream)
 nsamp = 4;              % Taxa de Oversampling
-Ts = 1003-3;            % Perьodo de amostragem
+Ts = 100e-3;            % Período de amostragem
 Fs = 1/Ts;              % Taxa de amostragem (amostras/s)
 
-% snr = 3;              % Vetor SNR em dB
-% Rb = 1.41e6;            % Taxa de bits por segundo (para codificaусo digital de audio, conforme PCM);
-% Fs = 44e3;              % Taxa de amostragem designada pelo padrсo
+snr_p = 20;              % SNR em dB
+% Rb = 1.41e6;            % Taxa de bits por segundo (para codificação digital de audio, conforme PCM);
+% Fs = 44e3;              % Taxa de amostragem designada pelo padrão
 
 % Calculos preliminares
 
@@ -34,12 +34,14 @@ Fs = 1/Ts;              % Taxa de amostragem (amostras/s)
 % Bw = Rs;        % Largura de banda do sinal
 % Ts = 1/Rs;      % Periodo de amostragem - baseado na taxa de simbolo - que eh baseada na largura de banda do sistema
 
-Rs = 1/Ts;      % Taxa de sьmbolos
+Rs = 1/Ts;      % Taxa de símbolos
 Bw = Rs;        % Largura de banda do sinal
 Rb = k*Rs;      % Taxa de bits por segundo
 Tb = 1/Rb;      % Tempo de 1 bit [para pulsos retangulares]
 Tt = Tb*n;      % Tempo total do sinal
 
+t = linspace(0, Tb*n, n);
+t_up = linspace(0, Tb * n, n * nsamp);
 
 %% ############## Simulaусo do Sistema ############## 
 
