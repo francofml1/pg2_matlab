@@ -4,8 +4,10 @@
 % Níveis [0,1]
 clear all, close all;  clc;
 
-modo = 0    % sem loop
-% modo = 1    % loop para cálcular SNR x BER
+% modo = 0    % sem loop
+modo = 1    % loop para cálcular SNR x BER
+iteracoes = 1000;
+
 
 % config para graficos:
 fator = 170;
@@ -17,12 +19,12 @@ line_w = 1.5;
 %% ##############  Parametros de Entrada  ############## 
 M = 2;                  % Nível da modulação
 k = log2(M);            % bits por símbolo (=1 para M = 2)
-n = 3e5;                % Numero de bits da Sequencia (Bitstream)
+n = 3*2^10;            % Numero de bits da Sequencia (Bitstream)
 nsamp = 4;              % Taxa de Oversampling
 Ts = 100e-3;            % Período de amostragem
 Fs = 1/Ts;              % Taxa de amostragem (amostras/s)
+snr_p = 5;              % SNR em dB
 
-snr_p = 20;              % SNR em dB
 % Rb = 1.41e6;            % Taxa de bits por segundo (para codificação digital de audio, conforme PCM);
 % Fs = 44e3;              % Taxa de amostragem designada pelo padrão
 
@@ -72,48 +74,96 @@ if modo
     
     % cálculo de SNR vs BER teórico
     EbNo_for = 0:.1:15;
-    ber = berawgn(EbNo_for,'pam',M);
+    ber_teorico = berawgn(EbNo_for,'pam',M);
+    n_erros=zeros(size(EbNo_for));
     
     for o = 1 : length(EbNo_for)
         
         EsNo = EbNo_for(o) + 10 * log10(k);
         snr(o) = EsNo - 10 * log10(nsamp) + 3 + 3; % era pra ser só +3
         snr_p = snr(o);
-    
-        %%  ##############  CANAL  ############## 
-        % Adiciona ruído Gaussiano branco ao sinal
-        y_ruido = awgn(x_up, snr(o),'measured');
+        
+        nerr = 0;
+        for kiter=1:iteracoes
+            x = randi([0,M-1],n,1);
+            
+            
+            %%% primeiro método
+            % x_up = rectpulse(x, nsamp);
 
-        %%  ############## RECEPÇÃO  ############## 
-        % Demodulação (OOK)
-        y_up = zeros(n,1);
-        for jj = 1 : length(y_ruido)
-            if y_ruido (jj) < 0.5
-                y_up(jj) = 0;
-            else
-                y_up(jj) = 1;
-            end
+                
+            % %%  ##############  CANAL  ############## 
+            % % Adiciona ruído Gaussiano branco ao sinal
+            % y_ruido = awgn(x_up, snr(o),'measured');
+
+            % %%  ############## RECEPÇÃO  ############## 
+            % % Demodulação (OOK)
+            % y_up = zeros(n,1);
+            % for jj = 1 : length(y_ruido)
+            %     if y_ruido (jj) < 0.5
+            %         y_up(jj) = 0;
+            %     else
+            %         y_up(jj) = 1;
+            %     end
+            % end
+
+            % % Reamostragem (downsample)
+            % y = intdump(y_up, nsamp);
+            %%% primeiro método - end
+            
+            %%% segundo método
+            % Modulação (M-PAM)
+            xmod = pammod(x,M); % mapeamento 
+            xmod = (xmod + 1) / 2;
+           
+            % Reamostragem (upsample)
+            x_up = rectpulse(xmod, nsamp);
+
+            % Adiciona ruído Gaussiano branco ao sinal
+            y_ruido = awgn(x_up, snr(o),'measured');
+
+
+            % % Reamostragem (downsample)
+            y_down = intdump(y_ruido,nsamp);
+
+            % Demodula??o (M-PAM)
+            y_down = (y_down * 2) - 1;
+            y = pamdemod(y_down,M); % Desmapeamento
+
+            %%% segundo método - end
+            
+        
+            %%  ############## Calcula os erros  ############## 
+            d_bit = (abs(x-y));
+            n_erros(o) = n_erros(o) + sum(d_bit);
+            ber_awgn(o) = mean(d_bit);
+            clear d_bit;
+
+            nerr = nerr + sum(abs(x-y));
         end
-
-        % Reamostragem (downsample)
-        y = intdump(y_up, nsamp);
-
-        % y = pamdemod(y_down,M); % Desmapeamento
-        % y = y_down;
-    
-    
-        %%  ############## Calcula os erros  ############## 
-        d_bit = (abs(x-y));
-        n_erros(o) = sum(d_bit);
-        ber_awgn(o) = mean(d_bit);
-        clear d_bit;
+        BER(o) = nerr/(n*k*nsamp*iteracoes);
+        fprintf("Simulados %d pontos, BER = %f, SNR = %f\n",(n*iteracoes*nsamp),BER(o),snr(o));
+        fprintf("Número de erros: %d\n\n", nerr);
     
     end % for
+    y_up = rectpulse(y, nsamp);
+
 
     %  Plota a relação SNR vs BER
+    % figure('Name','SNR vs BER') 
+    % s1=semilogy(EbNo_for, ber_teorico, 'b'); hold all
+    % s2=semilogy(snr, ber_awgn, 'r');
+    % title('Relacao SNR vs BER')
+    % xlabel('SNR')
+    % ylabel('BER')
+    % legend('Teórico', 'Simulado')
+    % grid on, hold off;
+    % s1.LineWidth = 1.5;
+    % s2.LineWidth = 1.5;
+    
     figure('Name','SNR vs BER') 
-    s1=semilogy(EbNo_for, ber, 'b'); hold all
-    s2=semilogy(snr, ber_awgn, 'r');
+    s1=semilogy(EbNo_for, ber_teorico, 'b'); hold all
+    s2=semilogy(snr, BER, 'r');
     title('Relacao SNR vs BER')
     xlabel('SNR')
     ylabel('BER')
@@ -140,9 +190,12 @@ else % ############################################################
     % Reamostragem (downsample)
     y = intdump(y_up,nsamp);
     
-    % Demodulação (OOK)
+    % % Reamostragem (downsample)
+    % y_down = intdump(y_ruido,nsamp);
+
+    % % Demodula??o (M-PAM)
+    % y_down = (y_down * 2) - 1;
     % y = pamdemod(y_down,M); % Desmapeamento
-    % y = y_down;
     
     
     %%  ############## Calcula os erros  ############## 
