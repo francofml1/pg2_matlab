@@ -3,6 +3,7 @@
 % 
 % Níveis [0,1]
 clear all, close all;  clc;
+%%
 
 % modo = 0    % sem loop
 modo = 1    % loop para cálcular SNR x BER
@@ -19,7 +20,7 @@ line_w = 1.5;
 %% ##############  Parametros de Entrada  ############## 
 M = 2;                  % Nível da modulação
 k = log2(M);            % bits por símbolo (=1 para M = 2)
-n = 3*2^10;            % Numero de bits da Sequencia (Bitstream)
+n = 1*2^10;            % Numero de bits da Sequencia (Bitstream)
 nsamp = 4;              % Taxa de Oversampling
 Ts = 100e-3;            % Período de amostragem
 Fs = 1/Ts;              % Taxa de amostragem (amostras/s)
@@ -160,7 +161,7 @@ if modo
     % grid on, hold off;
     % s1.LineWidth = 1.5;
     % s2.LineWidth = 1.5;
-    
+    %%
     figure('Name','SNR vs BER') 
     s1=semilogy(EbNo_for, ber_teorico, 'b'); hold all
     s2=semilogy(snr, BER, 'r');
@@ -171,6 +172,7 @@ if modo
     grid on, hold off;
     s1.LineWidth = 1.5;
     s2.LineWidth = 1.5;
+    %%
 
 else % ############################################################
     
