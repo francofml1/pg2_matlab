@@ -1,11 +1,11 @@
 %% 
-% Transmiss√£o de sinal com modula√ß√£o OOK
+% Transmiss„o de sinal com modulaÁ„o OOK
 % 
-% N√≠veis [0,1]
+% NÌveis [0,1]
 clear all, close all;  clc;
 
 modo = 0    % sem loop
-% modo = 1    % loop para c√°lcular SNR x BER
+% modo = 1    % loop para c·lcular SNR x BER
 
 % config para graficos:
 fator = 170;
@@ -15,16 +15,16 @@ line_w = 1.5;
 
 %
 %% ##############  Parametros de Entrada  ############## 
-M = 2;                  % N√≠vel da modula√ß√£o
-k = log2(M);            % bits por s√≠mbolo (=1 para M = 2)
+M = 2;                  % NÌvel da modulaÁ„o
+k = log2(M);            % bits por sÌmbolo (=1 para M = 2)
 n = 3e5;                % Numero de bits da Sequencia (Bitstream)
 nsamp = 4;              % Taxa de Oversampling
-Ts = 100e-3;            % Per√≠odo de amostragem
+Ts = 100e-3;            % PerÌodo de amostragem
 Fs = 1/Ts;              % Taxa de amostragem (amostras/s)
 
 snr_p = 20;              % SNR em dB
-% Rb = 1.41e6;            % Taxa de bits por segundo (para codifica√ß√£o digital de audio, conforme PCM);
-% Fs = 44e3;              % Taxa de amostragem designada pelo padr√£o
+% Rb = 1.41e6;            % Taxa de bits por segundo (para codificaÁ„o digital de audio, conforme PCM);
+% Fs = 44e3;              % Taxa de amostragem designada pelo padr„o
 
 % Calculos preliminares
 
@@ -34,7 +34,7 @@ snr_p = 20;              % SNR em dB
 % Bw = Rs;        % Largura de banda do sinal
 % Ts = 1/Rs;      % Periodo de amostragem - baseado na taxa de simbolo - que eh baseada na largura de banda do sistema
 
-Rs = 1/Ts;      % Taxa de s√≠mbolos
+Rs = 1/Ts;      % Taxa de sÌmbolos
 Bw = Rs;        % Largura de banda do sinal
 Rb = k*Rs;      % Taxa de bits por segundo
 Tb = 1/Rb;      % Tempo de 1 bit [para pulsos retangulares]
@@ -43,103 +43,155 @@ Tt = Tb*n;      % Tempo total do sinal
 t = linspace(0, Tb*n, n);
 t_up = linspace(0, Tb * n, n * nsamp);
 
-%% ############## Simula—É—Åo do Sistema ############## 
+%% ############## SimulaÁ„o do Sistema ############## 
 
 %
-%%  ############## TRANSMISS‚îúO ############## 
+%%  ############## TRANSMISS√O ############## 
 %
 % Gera o Bitstream
 x = randi([0,M-1],n,1);
 
-% Modula—É—Åo (M-PAM)
-xmod = pammod(x,M); % mapeamento 
-xmod = (xmod + 1) / 2;
+% ModulaÁ„o (M-PAM)
+    % xmod = pammod(x,M); % mapeamento 
+    % xmod = (xmod + 1) / 2;
+    % for ii = 1 : length(x)
+    %     if x(ii) < 0
+    %         x(ii) = 0;
+    %     end
+    % end
 
 % Reamostragem (upsample)
-x_up = rectpulse(xmod, nsamp);
-
-%% ------------ Vetor SNR --------------
-% snr = linspace(1, 15, 100); % snr variando de 1 a 100 com 100 amostras
-
-% c—Älculo de SNR vs BER te–∑rico
-EbNo_for = 0:.1:20;
-ber = berawgn(EbNo_for,'pam',M);
+% x_up = rectpulse(xmod, nsamp);
+x_up = rectpulse(x, nsamp);
 
 
 
-%% varia—É—Åo SNR, BER
-% ber_awgn = zeros(size(EbNo_for));
-for o = 1 : length(EbNo_for)
+
+if modo
+    %% ------------ Vetor SNR --------------
     
-    EsNo = EbNo_for(o) + 10 * log10(k);
-    snr(o) = EsNo - 10 * log10(nsamp) + 3 + 3; % era pra ser s–∑ +3
-
-
-    %%  ##############  CANAL  ############## 
-        % Adiciona ru—ådo Gaussiano branco ao sinal
+    % c·lculo de SNR vs BER teÛrico
+    EbNo_for = 0:.1:15;
+    ber = berawgn(EbNo_for,'pam',M);
+    
+    for o = 1 : length(EbNo_for)
+        
+        EsNo = EbNo_for(o) + 10 * log10(k);
+        snr(o) = EsNo - 10 * log10(nsamp) + 3 + 3; % era pra ser sÛ +3
+        snr_p = snr(o);
+    
+        %%  ##############  CANAL  ############## 
+        % Adiciona ruÌdo Gaussiano branco ao sinal
         y_ruido = awgn(x_up, snr(o),'measured');
 
+        %%  ############## RECEP«√O  ############## 
+        % DemodulaÁ„o (OOK)
+        y_up = zeros(n,1);
+        for jj = 1 : length(y_ruido)
+            if y_ruido (jj) < 0.5
+                y_up(jj) = 0;
+            else
+                y_up(jj) = 1;
+            end
+        end
 
-        %%  ############## RECEP–ö‚îúO  ############## 
         % Reamostragem (downsample)
-        y_down = intdump(y_ruido,nsamp);
+        y = intdump(y_up, nsamp);
 
-        % Demodula—É—Åo (M-PAM)
-        y_down = (y_down * 2) - 1;
-        y = pamdemod(y_down,M); % Desmapeamento
+        % y = pamdemod(y_down,M); % Desmapeamento
         % y = y_down;
+    
+    
+        %%  ############## Calcula os erros  ############## 
+        d_bit = (abs(x-y));
+        n_erros(o) = sum(d_bit);
+        ber_awgn(o) = mean(d_bit);
+        clear d_bit;
+    
+    end % for
 
-
-    %%  ############## Calcula os erros  ############## 
-    d_bit = (abs(x-y));
-    n_erros(o) = sum(d_bit);
-    ber_awgn(o) = mean(d_bit);
-    clear d_bit;
-
-end
-%% -------------- OBS --------------
-% se o sinal for um sinal de voz, SNR = 1e-3 eh suficiente
-% 
-% numero de amostras: n = 3000 -> n = 3*(1/BER)
-
-%% ------------------------ Mostra alguns Gr—Äficos ------------------------
-
-% %%  ##############  Resultados calculados  ############## 
-% fprintf('Grandezas de avaliacao do canal\n');
-% fprintf('SNR: %4.3f dB\n',snr);
-% fprintf('BER: %5.3e \n',ber_awgn);
-% fprintf('Qtd de erros: %3d\n',n_erros);
-
-
-%  Plota a rela—É—Åo SNR vs BER
-% plot(snr, ber_awgn, 'o'), hold on
-% plot(snr, ber_awgn)
-% plot(EbNo_for, ber), hold all
-figure('Name','SNR vs BER') 
-s1=semilogy(EbNo_for, ber, '-*b'); hold all
-s2=semilogy(snr, ber_awgn, '.r');
+    %  Plota a relaÁ„o SNR vs BER
+    figure('Name','SNR vs BER') 
+    s1=semilogy(EbNo_for, ber, 'b'); hold all
+    s2=semilogy(snr, ber_awgn, 'r');
     title('Relacao SNR vs BER')
     xlabel('SNR')
     ylabel('BER')
-    legend('Te–∑rico', 'Simulado')
+    legend('TeÛrico', 'Simulado')
     grid on, hold off;
     s1.LineWidth = 1.5;
     s2.LineWidth = 1.5;
+
+else % ############################################################
+    
+    %%  ##############  CANAL  ############## 
+    % Adiciona ruÌdo Gaussiano branco ao sinal
+    y_ruido = awgn(x_up, snr_p,'measured');
+    
+    %%  ############## RECEP«√O  ############## 
+    y_up = zeros(n,1);
+    for jj = 1 : length(y_ruido)
+        if y_ruido (jj) < 0.5
+            y_up(jj) = 0;
+        else
+            y_up(jj) = 1;
+        end
+    end
+    % Reamostragem (downsample)
+    y = intdump(y_up,nsamp);
+    
+    % DemodulaÁ„o (OOK)
+    % y = pamdemod(y_down,M); % Desmapeamento
+    % y = y_down;
+    
+    
+    %%  ############## Calcula os erros  ############## 
+    d_bit = (abs(x-y));
+    n_erros = sum(d_bit);
+    ber_awgn = mean(d_bit);
+    %%  ##############  Resultados calculados  ############## 
+    fprintf('Grandezas de avaliacao do canal\n');
+    fprintf('SNR: %4.3f dB\n',snr_p);
+    fprintf('BER: %5.3e \n',ber_awgn);
+    fprintf('Qtd de erros: %3d\n',n_erros);
+end
 %%
 
 % Plota os sinais no dominio do Tempo
-figure('Name', 'Sinais no Tempo')
-%     p1=plot(real(x_up(1:nsamp*50)),'b'); % plota o sinal modulado
-    p1=plot(real(x_up(1:nsamp*50)),'b'); % plota o sinal modulado
+
+figure('Name', 'Sinais no Tempo - upsample', 'Position', [50 50 img_w img_h])
+subplot(211)
+    p1=plot(t_up(1:50*nsamp), x_up(1:50*nsamp), 'b');
+    title('Sinal Original')
+    ylabel('Amplitude')
+    xlabel('Tempo [ms]')
+    ylim([-0.2 1.2])
+    grid on;
+    p1.LineWidth = 1.5;
+    
+subplot(212)
+% p2=plot(t(1:50), y(1:50), 'r');
+    p2=plot(t_up(1:50*nsamp), y_up(1:50*nsamp), 'r');
+    title('Sinal Recebido')
+    ylabel('Amplitude')
+    xlabel('Tempo [ms]')
+    ylim([-0.3 1.2])
+    grid on;
+    p2.LineWidth = 1.5;
+
+%%
+figure('Name', 'Sinais no Tempo', 'Position', [50 50 img_w img_h])
+    p1=plot(t_up(1:nsamp*50), x_up(1:nsamp*50),'b'); % plota o sinal modulado
     hold all
-    p2=plot(real(y_ruido(1:nsamp*50)),'r'); % plota o sinal ruidoso
+    p2=plot(t_up(1:nsamp*50), y_ruido(1:nsamp*50),'r'); % plota o sinal ruidoso
     hold off, grid on
-    title('Sinais no Tempo')
+    title("Sinais no Tempo para SNR = " + snr_p + " dB")
     p1.LineWidth = 1.5;
     p2.LineWidth = 1.3;
-    legend('Sinal Modulado', 'Sinal Ruidoso')
-    xlabel('Tempo')
+    legend('Sinal Modulado', 'Sinal Ruidoso', 'location', 'southeast')
+    xlabel('Tempo [ms]')
     ylabel('Amplitude')
+    
 %%
 % h1 = eyediagram(real(x_up),3*nsamp,1,0);
 % 
@@ -154,7 +206,7 @@ figure('Name', 'Sinais no Tempo')
 % title('Diagrama de olho de y_{ruido}'), grid on
 
 
-% Mostra o diagram de olho na sa—åda do canal
+% Mostra o diagram de olho na saÌda do canal
 % if nsamp == 1
 %     offset = 0;
 %     h2 = eyediagram(real(y_down),2,1,offset);
@@ -167,7 +219,7 @@ figure('Name', 'Sinais no Tempo')
 % grid on
 
 
-% Mostra o Diagrama de Constela—É—Åo
+% Mostra o Diagrama de ConstelaÁ„o
 % scatterplot(y_down)
 % grid on
 
@@ -181,11 +233,11 @@ figure('Name', 'Sinais no Tempo')
 
 % figure('Name', 'Sinais em Frequencia')
 % subplot(3,1,1)
-%     plot(f1,10*log10(fftshift(abs(Xmod))),'b'); grid on; % plot no dom—ånio da frequencia
-%     title('Sinal Modulado'), xlabel('Frequ–ñncia [Hz]'), ylabel('PSD')
+%     plot(f1,10*log10(fftshift(abs(Xmod))),'b'); grid on; % plot no domÌnio da frequencia
+%     title('Sinal Modulado'), xlabel('FrequÍncia [Hz]'), ylabel('PSD')
 % subplot(3,1,2)
-%     plot(f2,10*log10(fftshift(abs(Y_ruido))),'r'); grid on; % plot no dom—ånio da frequencia
-%     title('Sinal Ruidoso'), xlabel('Frequ–ñncia [Hz]'), ylabel('PSD')
+%     plot(f2,10*log10(fftshift(abs(Y_ruido))),'r'); grid on; % plot no domÌnio da frequencia
+%     title('Sinal Ruidoso'), xlabel('FrequÍncia [Hz]'), ylabel('PSD')
 % subplot(3,1,3)
-%     plot(f3,10*log10(fftshift(abs(X_up))),'r'); grid on; % plot no dom—ånio da frequencia
-%     title('Sinal Modulado com Up Sample'), xlabel('Frequ–ñncia [Hz]'), ylabel('PSD')
+%     plot(f3,10*log10(fftshift(abs(X_up))),'r'); grid on; % plot no domÌnio da frequencia
+%     title('Sinal Modulado com Up Sample'), xlabel('FrequÍncia [Hz]'), ylabel('PSD')
