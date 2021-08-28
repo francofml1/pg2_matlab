@@ -5,7 +5,7 @@
 % Níveis [0,1]
 clear all, close all;  clc;
 %%
-
+slCharacterEncoding('UTF-8')
 modo = 0    % sem loop
 % modo = 1    % loop para cálcular SNR x BER
 iteracoes = 1000;
@@ -21,11 +21,15 @@ line_w = 1.5;
 %% ##############  Parametros de Entrada  ############## 
 M = 2;                  % Nível da modulação
 k = log2(M);            % bits por símbolo (=1 para M = 2)
-n = 1*2^10;            % Numero de bits da Sequencia (Bitstream)
+if modo
+    n = 1*2^10;         % Numero de bits da Sequencia (Bitstream)
+else
+    n = 100*2^10;       % Numero de bits da Sequencia (Bitstream)
+end
 nsamp = 4;              % Taxa de Oversampling
 Ts = 100e-3;            % Período de amostragem
 Fs = 1/Ts;              % Taxa de amostragem (amostras/s)
-snr_p = 15;              % SNR em dB
+snr_p = 15;             % SNR em dB
 
 % Rb = 1.41e6;            % Taxa de bits por segundo (para codificação digital de audio, conforme PCM);
 % Fs = 44e3;              % Taxa de amostragem designada pelo padrão
@@ -251,7 +255,7 @@ figure('Name', 'Sinais no Tempo', 'Position', [50 50 img_w img_h])
     title("Sinais no Tempo para SNR = " + snr_p + " dB")
     p1.LineWidth = 1.5;
     p2.LineWidth = 1.3;
-    legend('Sinal Modulado', 'Sinal Ruidoso', 'location', 'southeast')
+    legend('Sinal Modulado', 'íãáSinal Ruidoso', 'location', 'southeast')
     xlabel('Tempo [ms]')
     ylabel('Amplitude')
     
