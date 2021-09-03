@@ -204,10 +204,10 @@ else % ############################################################
     %% RECEPÇÃO:
 
     % % Reamostragem (downsample)
-    y_down = intdump(y_ruido,nsamp);
+    y_down_ofset = intdump(y_ruido,nsamp);
 
     % Demodulacaoo (M-PAM)
-    y_down = (y_down * 2) - 1;
+    y_down = (y_down_ofset * 2) - 1;
     y = pamdemod(y_down,M); % Desmapeamento
 
     %%% segundo método - end
@@ -291,9 +291,10 @@ title('Diagrama de olho de y_{ruido}'), grid on
 % grid on
 
 
-% Mostra o Diagrama de Constelação
-% scatterplot(y_down)
-% grid on
+%%  Diagrama de Constelação
+scatterplot(y_ruido)
+scatterplot(y_down_ofset)
+grid on
 
 
 
