@@ -200,6 +200,9 @@ else % ############################################################
     % Adiciona ruído Gaussiano branco ao sinal
     y_ruido = awgn(x_up, snr_p,'measured');
 
+    
+    %% RECEPÇÃO:
+
     % % Reamostragem (downsample)
     y_down = intdump(y_ruido,nsamp);
 
@@ -258,19 +261,21 @@ figure('Name', 'Sinais no Tempo', 'Position', [50 50 img_w img_h])
     legend('Sinal Modulado', 'íãáSinal Ruidoso', 'location', 'southeast')
     xlabel('Tempo [ms]')
     ylabel('Amplitude')
-    
-%%
-% h1 = eyediagram(real(x_up),3*nsamp,1,0);
-% 
-% set(h1,'Name','Diagram de Olho x_{up}');
-% title('Diagrama de olho de x_{up}'), grid on
 
 
-%%% Diagrama de olho
-% h2 = eyediagram(real(y_ruido),2*nsamp,1,0);
-% 
-% set(h2,'Name','Diagram de Olho y_{ruido}');
-% title('Diagrama de olho de y_{ruido}'), grid on
+
+%% Diagramas de olho
+
+h1 = eyediagram(real(x_up(1:nsamp*500)),3*nsamp,1,0);
+
+set(h1,'Name','Diagram de Olho x_{up}');
+title('Diagrama de olho de x_{up}'), grid on
+
+
+h2 = eyediagram(real(y_ruido(1:nsamp*500)),3*nsamp,1,0);
+
+set(h2,'Name','Diagram de Olho y_{ruido}');
+title('Diagrama de olho de y_{ruido}'), grid on
 
 
 % Mostra o diagram de olho na saída do canal
