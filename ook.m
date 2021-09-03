@@ -294,17 +294,17 @@ figure('Name', 'Sinais no Tempo', 'Position', [50 50 img_w img_h])
 
 
 %%  ############## Analise no dominio da frequencia ############## 
-% [Xmod,~,f1,~] = analisador_de_spectro(xmod',Ts);
-% [Y_ruido,~,f2,~] = analisador_de_spectro(y_ruido',Ts/4);
-% [X_up,~,f3,~] = analisador_de_spectro(x_up',Ts/4);
+[Xmod,~,f1,~] = analisador_de_spectro(xmod',Ts);
+[Y_ruido,~,f2,~] = analisador_de_spectro(y_ruido',Ts/nsamp);
+[X_up,~,f3,~] = analisador_de_spectro(x_up',Ts/nsamp);
 
-% figure('Name', 'Sinais em Frequencia')
-% subplot(3,1,1)
-%     plot(f1,10*log10(fftshift(abs(Xmod))),'b'); grid on; % plot no domínio da frequencia
-%     title('Sinal Modulado'), xlabel('Frequência [Hz]'), ylabel('PSD')
-% subplot(3,1,2)
-%     plot(f2,10*log10(fftshift(abs(Y_ruido))),'r'); grid on; % plot no domínio da frequencia
-%     title('Sinal Ruidoso'), xlabel('Frequência [Hz]'), ylabel('PSD')
-% subplot(3,1,3)
-%     plot(f3,10*log10(fftshift(abs(X_up))),'r'); grid on; % plot no domínio da frequencia
-%     title('Sinal Modulado com Up Sample'), xlabel('Frequência [Hz]'), ylabel('PSD')
+figure('Name', 'Sinais em Frequencia', 'Position', [50 50 img_w img_h])
+subplot(3,1,1)
+    plot(f1,10*log10(fftshift(abs(Xmod))),'b'); grid on; % plot no domínio da frequencia
+    title('Sinal Modulado'), xlabel('Frequência [Hz]'), ylabel('PSD')
+subplot(3,1,2)
+    plot(f2,10*log10(fftshift(abs(Y_ruido))),'r'); grid on; % plot no domínio da frequencia
+    title('Sinal Ruidoso'), xlabel('Frequência [Hz]'), ylabel('PSD')
+subplot(3,1,3)
+    plot(f3,10*log10(fftshift(abs(X_up))),'r'); grid on; % plot no domínio da frequencia
+    title('Sinal Modulado com Up Sample'), xlabel('Frequência [Hz]'), ylabel('PSD')
