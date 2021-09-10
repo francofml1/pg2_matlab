@@ -258,7 +258,7 @@ figure('Name', 'Sinais no Tempo', 'Position', [50 50 img_w img_h])
     title("Sinais no Tempo para SNR = " + snr_p + " dB")
     p1.LineWidth = 1.5;
     p2.LineWidth = 1.3;
-    legend('Sinal Modulado', 'íãáSinal Ruidoso', 'location', 'southeast')
+    legend('Sinal Modulado', 'Sinal Ruidoso', 'location', 'southeast')
     xlabel('Tempo [ms]')
     ylabel('Amplitude')
 
@@ -293,7 +293,7 @@ title('Diagrama de olho de y_{ruido}'), grid on
 
 %%  Diagrama de Constelação
 scatterplot(y_ruido)
-scatterplot(y_down_ofset)
+% scatterplot(y_down_ofset)
 grid on
 
 
