@@ -78,7 +78,7 @@ spectrogram(decoded_out,samples,samples-1,samples,Fs,'yaxis');
 fig = gcf;
 fig.PaperUnits = 'inches';
 fig.PaperPosition = [0 0 6 3];
-print('SameAxisLimits','-dpng','-r0')
+% print('SameAxisLimits','-dpng','-r0')
 
 % Plotting the received frequencies
 figure(2);
