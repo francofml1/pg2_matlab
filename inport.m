@@ -7,16 +7,21 @@ img_w = 5 *fator;
 img_h = 3 *fator;
 line_w = 1.5;
 
-n_ch = 1;
+n_ch = 2;
+img_num = '0076';
+img_path = '..\..\Imagens Osciloscopio\ALL';
 
 %% Importação de dados
-
-load('ALL0053TEK');                 % Carrega dados do osciloscópio:
-t1 = F0053CH1.VarName4 * 1e-12;     % tempo em segundos
-x1 = F0053CH1.VarName5 * 1e-5;      % amplitude em Volts
+img_path_CH1 = strcat(img_path, img_num, '\F', img_num, 'CH1.CSV');
+CH1 = importfile(img_path_CH1);
+% load('ALL0053TEK');                 % Carrega dados do osciloscópio:
+t1 = CH1.VarName4 * 1e-12;     % tempo em segundos
+x1 = CH1.VarName5 * 1e-5;      % amplitude em Volts
 if (n_ch == 2)
-    t2 = F0053CH2.VarName4 * 1e-12;     % tempo em segundos
-    x2 = F0053CH2.VarName5 * 1e-5;      % amplitude em Volts
+    img_path_CH2 = strcat(img_path, img_num, '\F', img_num, 'CH2.CSV');
+    CH2 = importfile(img_path_CH2);
+    t2 = CH2.VarName4 * 1e-12;     % tempo em segundos
+    x2 = CH2.VarName5 * 1e-5;      % amplitude em Volts
 end
 
 n = length(t1);
@@ -24,11 +29,12 @@ Ts = t1(2) - t1(1);     % Periodo de amostragem
 Fs = 1/Ts;      % Taxa de amostragem
 
 ordem   = 21;               % Ordem do filtro 
-% fct_Hz = 5500;               % Frequencia de corte do filtro [Hz]
-fct_Hz = [3000 5000];               % Frequencia de corte do filtro [Hz]
+fct_Hz = 100;               % Frequencia de corte do filtro [Hz]
+% fct_Hz = [3000 5000];               % Frequencia de corte do filtro [Hz]
 % fct1 = 0.015;             % Frequencia de corte do filtro (normalizado de -Fs/2 até Fs/2
                             % ou seja, a frequencia de corte em Hz é fcorte1*Fs/2
 fct1 = fct_Hz / (Fs/2);     % Frequencia de corte do filtro (normalizado de -Fs/2 até Fs/2
+h_tipo = 'low';
 
 
 % Medição do Espectro
@@ -80,7 +86,7 @@ end
 if (length(fct1) > 1)
     h = fir1(ordem, fct1, 'bandpass'); 
 else
-    h = fir1(ordem, fct1, 'high'); 
+    h = fir1(ordem, fct1, h_tipo); 
 end
     
 figure('Name', 'Resposta do Filtro'), 
