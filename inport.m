@@ -7,16 +7,16 @@ img_w = 5 *fator;
 img_h = 3 *fator;
 line_w = 1.5;
 
-n_ch = 2;
-img_num = '0076';
+n_ch = 1;
+img_num = '0052';
 img_path = '..\..\Imagens Osciloscopio\ALL';
 
 %% Importação de dados
 img_path_CH1 = strcat(img_path, img_num, '\F', img_num, 'CH1.CSV');
 CH1 = importfile(img_path_CH1);
 % load('ALL0053TEK');                 % Carrega dados do osciloscópio:
-t1 = CH1.VarName4 * 1e-12;     % tempo em segundos
-x1 = CH1.VarName5 * 1e-5;      % amplitude em Volts
+t1 = CH1.VarName4% * 1e-12;     % tempo em segundos
+x1 = CH1.VarName5% * 1e-5;      % amplitude em Volts
 if (n_ch == 2)
     img_path_CH2 = strcat(img_path, img_num, '\F', img_num, 'CH2.CSV');
     CH2 = importfile(img_path_CH2);
@@ -29,8 +29,8 @@ Ts = t1(2) - t1(1);     % Periodo de amostragem
 Fs = 1/Ts;      % Taxa de amostragem
 
 ordem   = 21;               % Ordem do filtro 
-fct_Hz = 100;               % Frequencia de corte do filtro [Hz]
-% fct_Hz = [3000 5000];               % Frequencia de corte do filtro [Hz]
+% fct_Hz = 45e3;               % Frequencia de corte do filtro [Hz]
+fct_Hz = [9000 11000];               % Frequencia de corte do filtro [Hz]
 % fct1 = 0.015;             % Frequencia de corte do filtro (normalizado de -Fs/2 até Fs/2
                             % ou seja, a frequencia de corte em Hz é fcorte1*Fs/2
 fct1 = fct_Hz / (Fs/2);     % Frequencia de corte do filtro (normalizado de -Fs/2 até Fs/2
@@ -79,6 +79,13 @@ end
     grid on;
     title('Sinal Recebido no Piezoelétrico')
     xlabel('Frequência [Hz]')
+    ylabel('PSD')
+
+figure('Name', 'Sinal Recebido Semilog', 'Position', [50 50 img_w img_h])
+    semilogx(f1,abs(X1),'r'); 
+    grid on;
+    title('Sinal Recebido no Piezoelétrico')
+    xlabel('Frequência')
     ylabel('PSD')
 
 
@@ -133,5 +140,5 @@ subplot(224)
     axis tight
     p4.LineWidth = 1.5;
 
-% Decodifica��o
+% Decodifica��o
 %  y1 = pamdemod(abs(x1)-(max(x1)/2),2)
