@@ -68,3 +68,4 @@ fastlane/test_output
 iOSInjectionProject/
 desktop.ini
 *.asv
+esp_Tx/.vscode/
