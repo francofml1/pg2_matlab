@@ -131,6 +131,7 @@ void callback(char *topic, byte *payload, unsigned int length)
  * */
 void sendArray(uint16_t N, double Tb, double T_delay, bool *bit_array)
 {
+    delay(100);
     uint32_t T0_bit;
     for (size_t i = 0; i < N; i++)
     {
