@@ -135,14 +135,13 @@ void sendArray(uint16_t N, double Tb, double T_delay, bool *bit_array)
     for (size_t i = 0; i < N; i++)
     {
         T0_bit = millis();
-        Serial.print("x_bit[");
-        Serial.print(i);
-        Serial.print("]");
-        Serial.println(bit_array[i]);
+        // Serial.print("x_bit[");
+        // Serial.print(i);
+        // Serial.print("]: ");
+        // Serial.println(bit_array[i]);
 
         if (bit_array[i])
         {
-
             digitalWrite(D1, 1);
             digitalWrite(LED_BUILTIN, 1);
             delay(T_delay);
@@ -151,7 +150,7 @@ void sendArray(uint16_t N, double Tb, double T_delay, bool *bit_array)
         }
         while ((millis() - T0_bit) < (Tb))
         {
-            delay(5);
+            delay(2);
         }
     }
     digitalWrite(LED_BUILTIN, 0);

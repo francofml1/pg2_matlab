@@ -5,7 +5,7 @@
 
 clear all, close all;  clc;
 myMQTT= mqtt('tcp://localhost');
-pub_topic = 'inTopic'
+data_topic = 'd';
 
 %%
 % config para graficos:
@@ -18,7 +18,7 @@ line_w = 1.5;
 %% ##############  Parametros de Entrada  ##############
 M = 2;          % Nível da modulação
 k = log2(M);    % bits por símbolo (=1 para M = 2)
-n = 100;   % Numero de bits da Sequencia (Bitstream)
+n = 50;   % Numero de bits da Sequencia (Bitstream)
 
 nsamp = 4;      % Taxa de Oversampling
 Ts = 100e-3;    % Período de amostragem
@@ -28,17 +28,20 @@ snr_p = 15;     % SNR em dB
 
 
 % #### Parâmetros para ESP:
-delay_t = 50e-3;    % delay para desligar a saída após uma subida
+if (Tb > 30e-3)
+    delay_t = Tb/2;    % delay para desligar a saída após uma subida
+else
+    delay_t = 15e-3;    % delay para desligar a saída após uma subida
+end
 
 
-
-
-x = randi([0,M-1],n,1);     % gera sequência aleatória
-
+% x = randi([0,M-1],n,1);     % gera sequência aleatória
+x = ones(1, n);
 
 struct_data = struct('Tb', Tb, 'Td', delay_t, 'n', n, 'x_bit', x);
 json_data = jsonencode(struct_data);
-publish(myMQTT, pub_topic, json_data, 'Retain', false)
+
+publish(myMQTT, data_topic, json_data, 'Retain', false)
 
 %% Recpção por gravação de áudio:
 % recObj = audiorecorder(44100,16,1)
