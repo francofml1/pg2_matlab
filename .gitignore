@@ -70,3 +70,4 @@ desktop.ini
 *.asv
 esp_Tx/.vscode/
 esp_Tx/platformio-device-monitor*.log
+dados/

@@ -200,7 +200,7 @@ disp('1`s de y: ' + string(sum(y_up(:) == 1)))
 
 
 %% Salvar workspace:
-% save('n-'+string(n)+'_Tb-'+string(Tb)+'.mat')
+% save('dados/n-'+string(n)+'_Tb-'+string(Tb)+'.mat')
 
 %% Avaliação de Desempenho via BER versus SNR
 % [qtd,BER] = biterr(de2bi(data_in),de2bi(data_out));
