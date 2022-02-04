@@ -3,7 +3,8 @@
 %
 % Níveis [0,1]
 
-%% ############## Inicialização ##############
+%% ############## INICIALIZAÇÃO ##############
+
 clear all, close all;  clc;
 
 myMQTT = mqtt('tcp://localhost');       % objeto MQTT
@@ -21,7 +22,8 @@ img_pv = 400;
 line_w = 1.5;
 
 %
-%% ##############  Parametros de Entrada  ##############
+%% ##############  PARAMETROS DE ENTRADA  ##############
+
 M = 2;          % Nível da modulação
 k = log2(M);    % bits por símbolo (=1 para M = 2)
 n_prefix = 15;  % Comprimento do prefixo
@@ -46,10 +48,13 @@ else
     delay_t = 15e-3;    % delay para desligar a saída após uma subida
 end
 
+
+%% ############## TRANSMISSÃO ##############
+
 % Sinal a ser transmitido:
 prefix = [ones(1, 15)]% zeros(1,5)];
-x_rand = ones(n - n_prefix, 1);             % gera sequência de pulsos
-% x_rand = randi([0,M-1],n - n_prefix,1);     % gera sequência aleatória
+% x_rand = ones(n - n_prefix, 1);             % gera sequência de pulsos
+x_rand = randi([0,M-1],n - n_prefix,1);     % gera sequência aleatória
 x = [prefix x_rand'];
 
 % Reamostragem (upsample)
@@ -60,15 +65,15 @@ struct_data = struct('Tb', Tb, 'Td', delay_t, 'n', n, 'x_bit', x);
 json_data = jsonencode(struct_data);
 publish(myMQTT, data_topic, json_data, 'Retain', false)
 
+%::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+%% ############## RECEPÇÃO ##############
 
-%% Recpção por gravação de áudio:
+% Recpção por gravação de áudio:
 disp('Iniciando gravação')
 recordblocking(recObj, Tt + 0.5);
 disp('Fim da gravação');
 
-%% Demodulação:
 y_ruido = getaudiodata(recObj);
-% y_demod = pamdemod(y_ruido, M);
 
 %% Análise no TEMPO
 t_yr = linspace(0, Tt * 1.1, length(y_ruido));
@@ -137,67 +142,16 @@ figure('Name', 'Sinal Recebido Semilog', 'Position', [img_ph img_pv img_w img_h]
     ylabel('PSD')
 
 
+%% Filtragem do sinal recebido:
 % filtro(y_ruido, t_yr, [1.5e4], 21, 'high',Fs_y)
 
-%% Encontra picos:
-[pks,locs] = findpeaks(y_ruido,t_yr,'MinPeakDistance',Tb/2,'MinPeakHeight',.1);
 
-% figure('Name', 'Identificação dos Picos', 'Position', [img_ph img_pv img_w img_h])
-% findpeaks(y_ruido,t_yr,'MinPeakDistance',Tb/2,'MinPeakHeight',.1);
-% text(locs+.02,pks,num2str((1:numel(pks))'));
+%% ############## DEMODULAÇÃO ##############
+% Demodulação com máximos locais:
+% demod_max_loc;
 
-y_up = zeros(size(y_ruido));
-for index = 1:length(locs)
-    y_up(find(t_yr == (locs(index)))) = 1;
-end
-
-t_yr = t_yr -  locs(1);
-%%
-Tb_y = locs(2) - locs(1);
-t_y = 0:Tb:t_yr(end);
-y = zeros(size(t_y));
-idx_ti = 1;
-soma=[];
-for ii = 1:length(y)
-    % tib = ii * Tb;
-    tib = t_yr(idx_ti);
-    tfb = tib + Tb
-    aux = find(t_yr >= tfb);
-    if length(aux)
-        idx_tf = aux(1) - 1;
-    else
-        idx_tf = length(t_yr);
-    end
-    
-    soma(ii) = sum(y_up(idx_ti:idx_tf));
-    if (soma(ii) > 0)
-        y(ii) = 1;
-    end
-    
-    idx_ti = idx_tf;
-end
-
-
-figure('Name', 'Tratado upsampled', 'Position', [img_ph img_pv img_w img_h])
-    plot(t_yr, y_up,'*-r'); 
-    grid on;
-    title('Sinal Tratado')
-    xlabel('Frequência [Hz]')
-    ylabel('PSD')
-    ylim([-0.2 1.2])
-
-figure('Name', 'Tratado Downsampled', 'Position', [img_ph img_pv img_w img_h])
-    plot(t_y, y,'*-r'); 
-    grid on;
-    title('Sinal Tratado')
-    xlabel('Frequência [Hz]')
-    ylabel('PSD')
-    ylim([-0.2 1.2])
-
-
-disp('1`s de x: ' + string(sum(x(:) == 1)))
-disp('1`s de y: ' + string(sum(y_up(:) == 1)))
-
+% Demodulação com potência:
+demod_pot;
 
 %% Salvar workspace:
 % save('dados/n-'+string(n)+'_Tb-'+string(Tb)+'.mat')
