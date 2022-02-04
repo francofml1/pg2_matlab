@@ -10,6 +10,7 @@ clear all, close all;  clc;
 % modo 0 -> carrega dados salvos
 % modo 1 -> envia e aquisita novos dados
 modo = 0;
+dados_salvos = './dados/n-215_Tb-0.1.mat';
 
 % demod_modo 0 -> demodulação com potência a cada Tb
 % demod_modo 1 -> demodulação máximos locais
@@ -81,9 +82,8 @@ if modo
     disp('Iniciando gravação')
     recordblocking(recObj, Tt + 0.5);
     disp('Fim da gravação');
-    
 else
-    load('dados/n-35_Tb-0.1.mat');
+    load(dados_salvos);
 end % if modo
 
 y_ruido = getaudiodata(recObj);
@@ -98,7 +98,7 @@ figure('Name', 'Sinal Original no Tempo', 'Position', [img_ph img_pv img_w img_h
     ylabel('Amplitude')
     xlabel('Tempo [ms]')
     ylim([-0.2 1.2])
-    xlim([0 Tt*1.1])
+    % xlim([0 Tt*1.1])
     grid on; hold on;
     % p1.LineWidth = 1.5;
     
@@ -120,7 +120,7 @@ figure('Name', 'Sinal Recebido no Tempo', 'Position', [img_ph img_pv img_w img_h
     ylabel('Amplitude')
     xlabel('Tempo [ms]')
     % ylim([-0.2 1.2])
-    xlim([0 Tt*1.1])
+    % xlim([0 Tt*1.1])
     grid on;
 
 
@@ -171,6 +171,7 @@ end
 %% Salvar workspace:
 % save('dados/n-'+string(n)+'_Tb-'+string(Tb)+'.mat')
 
-%% Avaliação de Desempenho via BER versus SNR
-% [qtd,BER] = biterr(de2bi(data_in),de2bi(data_out));
+%% Avaliação de Desempenho por BER
+[n_err, ber] = biterr(x, y);
 
+fprintf('n = %d; Tb = %.3f; n_err = %i;ber = %3f\n', n, Tb, n_err, ber);

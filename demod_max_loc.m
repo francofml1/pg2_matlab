@@ -26,14 +26,14 @@ t_y = t_x;
 
 % idx_tx = 1;
 for t = locs_1
-    idx_tx = find(t_x >= t)
+    idx_tx = find(t_x >= t);
     
     if length(idx_tx)
         idx_tx = idx_tx(1);
     else
         idx_tx = length(t_x)-1;
     end
-    disp('t = ' + string(t) + '; idx_tx = ' + string(idx_tx) + '; t_x(idx_tx) = ' + string(t_x(idx_tx)))
+    % disp('t = ' + string(t) + '; idx_tx = ' + string(idx_tx) + '; t_x(idx_tx) = ' + string(t_x(idx_tx)))
     y(idx_tx) = 1;
 end
 
@@ -60,7 +60,7 @@ figure('Name', 'Tratado upsampled', 'Position', [img_ph img_pv img_w img_h])
     ylabel('Amplitude')
     xlabel('Tempo [ms]')
     ylim([-0.2 1.2])
-    xlim([0 Tt])
+    % xlim([0 Tt])
 
 figure('Name', 'Tratado Downsampled', 'Position', [img_ph img_pv img_w img_h])
     plot(t_y, y,'*-r'); 
@@ -69,5 +69,5 @@ figure('Name', 'Tratado Downsampled', 'Position', [img_ph img_pv img_w img_h])
     ylabel('Amplitude')
     xlabel('Tempo [ms]')
     ylim([-0.2 1.2])
-    xlim([0 Tt])
+    % xlim([0 Tt])
 
