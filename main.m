@@ -1,16 +1,25 @@
 %%
-% Transmissão de sinal com modulação OOK
+% TransmissÃ£o de sinal com modulaÃ§Ã£o OOK
 %
-% Níveis [0,1]
+% NÃ­veis [0,1]
 
-%% ############## INICIALIZAÇÃO ##############
+%% ############## INICIALIZAÃ‡ÃƒO ##############
 
 clear all, close all;  clc;
 
+% modo 0 -> carrega dados salvos
+% modo 1 -> envia e aquisita novos dados
+modo = 0;
+
+% demod_modo 0 -> demodulaÃ§Ã£o com potÃªncia a cada Tb
+% demod_modo 1 -> demodulaÃ§Ã£o mÃ¡ximos locais
+demod_modo = 1;
+
+if modo
 myMQTT = mqtt('tcp://localhost');       % objeto MQTT
-data_topic = 'd';                       % tópico para publicacao de dados
+data_topic = 'd';                       % tÃ³pico para publicacao de dados
 Fs_y = 44100;                           % taxa de amostragem do audio
-Ts_y = 1/Fs_y;                          % período de amostragem do audio
+Ts_y = 1/Fs_y;                          % perÃ­odo de amostragem do audio
 recObj = audiorecorder(Fs_y, 16, 1, 1); % objeto para gravacao de audio
 
 % config para graficos:
@@ -24,14 +33,14 @@ line_w = 1.5;
 %
 %% ##############  PARAMETROS DE ENTRADA  ##############
 
-M = 2;          % Nível da modulação
-k = log2(M);    % bits por símbolo (=1 para M = 2)
+M = 2;          % NÃ­vel da modulaÃ§Ã£o
+k = log2(M);    % bits por sÃ­mbolo (=1 para M = 2)
 n_prefix = 15;  % Comprimento do prefixo
 n_msg = 50;    % Comprimento da mensagem
 n = n_msg + n_prefix;         % Numero de bits da Sequencia (Bitstream)
 
 Tb = 100e-3;    % Tempo de bit
-Ts = Tb;        % Período de amostragem
+Ts = Tb;        % PerÃ­odo de amostragem
 Fs = 1 / Ts;    % Taxa de amostragem (amostras/s)
 nsamp = Fs_y / Fs;      % Taxa de Oversampling
 Tt = n * Tb;    % Tempo total do sinal
@@ -41,41 +50,45 @@ t_x = linspace(0, Tt, n);
 % Tb = t_x(2) - t_x(1);       % tempo de bit
 % t_xup = linspace(0, Tt, n * nsamp);
 
-% Parâmetros para ESP:
+% ParÃ¢metros para ESP:
 if (Tb > 30e-3)
-    delay_t = Tb/2;    % delay para desligar a saída após uma subida
+    delay_t = Tb/2;    % delay para desligar a saÃ­da apÃ³s uma subida
 else
-    delay_t = 15e-3;    % delay para desligar a saída após uma subida
+    delay_t = 15e-3;    % delay para desligar a saÃ­da apÃ³s uma subida
 end
 
 
-%% ############## TRANSMISSÃO ##############
+%% ############## TRANSMISSÃƒO ##############
 
 % Sinal a ser transmitido:
 prefix = [ones(1, 15)]% zeros(1,5)];
-% x_rand = ones(n - n_prefix, 1);             % gera sequência de pulsos
-x_rand = randi([0,M-1],n - n_prefix,1);     % gera sequência aleatória
+% x_rand = ones(n - n_prefix, 1);             % gera sequÃªncia de pulsos
+x_rand = randi([0,M-1],n - n_prefix,1);     % gera sequÃªncia aleatÃ³ria
 x = [prefix x_rand'];
 
 % Reamostragem (upsample)
 % x_up = rectpulse(x, nsamp);
 
-%% Converte para json e transmite à ESP:
+%% Converte para json e transmite Ã  ESP:
 struct_data = struct('Tb', Tb, 'Td', delay_t, 'n', n, 'x_bit', x);
 json_data = jsonencode(struct_data);
 publish(myMQTT, data_topic, json_data, 'Retain', false)
 
 %::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-%% ############## RECEPÇÃO ##############
+%% ############## RECEPÃ‡ÃƒO ##############
 
-% Recpção por gravação de áudio:
-disp('Iniciando gravação')
+% RecpÃ§Ã£o por gravaÃ§Ã£o de Ã¡udio:
+disp('Iniciando gravaÃ§Ã£o')
 recordblocking(recObj, Tt + 0.5);
-disp('Fim da gravação');
+disp('Fim da gravaÃ§Ã£o');
+
+else
+    load('dados/n-35_Tb-0.1.mat');
+end % if modo
 
 y_ruido = getaudiodata(recObj);
 
-%% Análise no TEMPO
+%% AnÃ¡lise no TEMPO
 t_yr = linspace(0, Tt * 1.1, length(y_ruido));
 
 figure('Name', 'Sinal Original no Tempo', 'Position', [img_ph img_pv img_w img_h])
@@ -123,22 +136,22 @@ figure('Name', 'Sinal Recebido no Tempo', 'Position', [img_ph img_pv img_w img_h
 
 
 
-%% Análise em FREQUÊNCIA
+%% AnÃ¡lise em FREQUÃŠNCIA
 
 [Y_ruido, ~, f1, ~] = analisador_de_spectro(y_ruido', Ts_y);
 
 figure('Name', 'Sinal Recebido em Frequencia', 'Position', [img_ph img_pv img_w img_h])
     plot(f1,10*log10(fftshift(abs(Y_ruido))),'r'); 
     grid on;
-    title('Sinal Recebido no Piezoelétrico')
-    xlabel('Frequência [Hz]')
+    title('Sinal Recebido no PiezoelÃ©trico')
+    xlabel('FrequÃªncia [Hz]')
     ylabel('PSD')
 
 figure('Name', 'Sinal Recebido Semilog', 'Position', [img_ph img_pv img_w img_h])
     semilogx(f1,abs(Y_ruido),'r'); 
     grid on;
-    title('Sinal Recebido no Piezoelétrico')
-    xlabel('Frequência')
+    title('Sinal Recebido no PiezoelÃ©trico')
+    xlabel('FrequÃªncia')
     ylabel('PSD')
 
 
@@ -146,16 +159,18 @@ figure('Name', 'Sinal Recebido Semilog', 'Position', [img_ph img_pv img_w img_h]
 % filtro(y_ruido, t_yr, [1.5e4], 21, 'high',Fs_y)
 
 
-%% ############## DEMODULAÇÃO ##############
-% Demodulação com máximos locais:
-% demod_max_loc;
-
-% Demodulação com potência:
+%% ############## DEMODULAÃ‡ÃƒO ##############
+if demod_modo
+% DemodulaÃ§Ã£o com mÃ¡ximos locais:
+    demod_max_loc;
+else
+% DemodulaÃ§Ã£o com potÃªncia:
 demod_pot;
+end
 
 %% Salvar workspace:
 % save('dados/n-'+string(n)+'_Tb-'+string(Tb)+'.mat')
 
-%% Avaliação de Desempenho via BER versus SNR
+%% AvaliaÃ§Ã£o de Desempenho via BER versus SNR
 % [qtd,BER] = biterr(de2bi(data_in),de2bi(data_out));
 
