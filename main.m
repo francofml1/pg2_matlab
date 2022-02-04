@@ -14,7 +14,7 @@ dados_salvos = './dados/n-215_Tb-0.1.mat';
 
 % demod_modo 0 -> demodulação com potência a cada Tb
 % demod_modo 1 -> demodulação máximos locais
-demod_modo = 1;
+demod_modo = 0;
 
 if modo
     myMQTT = mqtt('tcp://localhost');       % objeto MQTT
@@ -124,15 +124,15 @@ figure('Name', 'Sinal Recebido no Tempo', 'Position', [img_ph img_pv img_w img_h
     grid on;
 
 
-% figure('Name', 'Sinais no Tempo - upsample', 'Position', [img_ph img_pv img_w img_h])
-%     p3=plot(t_yr, abs(y_ruido), 'r');
-%     title('Sinal Recebido')
-%     ylabel('Amplitude')
-%     xlabel('Tempo [ms]')
-%     % ylim([-0.2 1.2])
-%     xlim([0 Tt*1.1])
-%     grid on;
-%     % p3.LineWidth = 1.5;
+figure('Name', 'Sinais no Tempo - upsample', 'Position', [img_ph img_pv img_w img_h])
+    p3=plot(t_yr, abs(y_ruido), 'r');
+    title('Sinal Recebido')
+    ylabel('Amplitude')
+    xlabel('Tempo [ms]')
+    % ylim([-0.2 1.2])
+    xlim([0 Tt*1.1])
+    grid on;
+    % p3.LineWidth = 1.5;
 
 
 
