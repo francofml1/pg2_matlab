@@ -9,12 +9,20 @@ clear all, close all;  clc;
 
 % modo 0 -> carrega dados salvos
 % modo 1 -> envia e aquisita novos dados
-modo = 0;
-dados_salvos = './dados/n-215_Tb-0.1.mat';
+modo = 1;
+dados_salvos = 'I:/Meu Drive/UFES/ENG ELÉTRICA/10º Período/Progeto de Graduação 2/Software/pg2_matlab/dados/n-215_Tb-0.1.mat';
 
 % demod_modo 0 -> demodulação com potência a cada Tb
 % demod_modo 1 -> demodulação máximos locais
 demod_modo = 0;
+
+% config para graficos:
+fator = 170;
+img_w = 5 * fator;
+img_h = 3 * fator;
+img_ph = 800;
+img_pv = 400;
+line_w = 1.5;
 
 if modo
     myMQTT = mqtt('tcp://localhost');       % objeto MQTT
@@ -23,13 +31,6 @@ if modo
     Ts_y = 1/Fs_y;                          % período de amostragem do audio
     recObj = audiorecorder(Fs_y, 16, 1, 1); % objeto para gravacao de audio
     
-    % config para graficos:
-    fator = 170;
-    img_w = 5 * fator;
-    img_h = 3 * fator;
-    img_ph = 800;
-    img_pv = 400;
-    line_w = 1.5;
     
     %
     %% ##############  PARAMETROS DE ENTRADA  ##############
@@ -37,10 +38,10 @@ if modo
     M = 2;          % Nível da modulação
     k = log2(M);    % bits por símbolo (=1 para M = 2)
     n_prefix = 15;  % Comprimento do prefixo
-    n_msg = 50;    % Comprimento da mensagem
+    n_msg = 10;    % Comprimento da mensagem
     n = n_msg + n_prefix;         % Numero de bits da Sequencia (Bitstream)
     
-    Tb = 100e-3;    % Tempo de bit
+    Tb = 1000e-3;    % Tempo de bit
     Ts = Tb;        % Período de amostragem
     Fs = 1 / Ts;    % Taxa de amostragem (amostras/s)
     nsamp = Fs_y / Fs;      % Taxa de Oversampling
@@ -52,6 +53,7 @@ if modo
     % t_xup = linspace(0, Tt, n * nsamp);
     
     % Parâmetros para ESP:
+    start_delay = 2000;      % delay antes de iniciar trasmissão em [ms]
     if (Tb > 30e-3)
         delay_t = Tb/2;    % delay para desligar a saída após uma subida
     else
@@ -62,7 +64,7 @@ if modo
     %% ############## TRANSMISSÃO ##############
     
     % Sinal a ser transmitido:
-    prefix = [ones(1, 15)]% zeros(1,5)];
+    prefix = [ones(1, 10) zeros(1,5)];
     % x_rand = ones(n - n_prefix, 1);             % gera sequência de pulsos
     x_rand = randi([0,M-1],n - n_prefix,1);     % gera sequência aleatória
     x = [prefix x_rand'];
@@ -71,7 +73,7 @@ if modo
     % x_up = rectpulse(x, nsamp);
     
     %% Converte para json e transmite à ESP:
-    struct_data = struct('Tb', Tb, 'Td', delay_t, 'n', n, 'x_bit', x);
+    struct_data = struct('Tb', Tb, 'Td', delay_t, 'n', n, 'x_bit', x, 'sd', start_delay);
     json_data = jsonencode(struct_data);
     publish(myMQTT, data_topic, json_data, 'Retain', false)
     
@@ -80,7 +82,7 @@ if modo
     
     % Recpção por gravação de áudio:
     disp('Iniciando gravação')
-    recordblocking(recObj, Tt + 0.5);
+    recordblocking(recObj, Tt + 0.5 + start_delay/1000);
     disp('Fim da gravação');
 else
     load(dados_salvos);
@@ -169,7 +171,7 @@ else
 end
 
 %% Salvar workspace:
-% save('dados/n-'+string(n)+'_Tb-'+string(Tb)+'.mat')
+% save('./dados/n-'+string(n)+'_Tb-'+string(Tb)+'.mat')
 
 %% Avaliação de Desempenho por BER
 [n_err, ber] = biterr(x, y);
