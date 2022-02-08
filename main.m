@@ -9,13 +9,14 @@ clear all, close all;  clc;
 
 % modo 0 -> carrega dados salvos
 % modo 1 -> envia e aquisita novos dados
-modo = 1;
+modo = 0;
 dados_salvos = 'I:/Meu Drive/UFES/ENG ELÉTRICA/10º Período/Progeto de Graduação 2/Software/pg2_matlab/dados/n-215_Tb-0.1.mat';
+% dados_salvos = './dados/n-25_Tb-1.mat';
 
 % demod_modo 0 -> demodulação com potência a cada Tb
 % demod_modo 1 -> demodulação máximos locais
 demod_modo = 0;
-
+ 
 % config para graficos:
 fator = 170;
 img_w = 5 * fator;
@@ -90,8 +91,14 @@ end % if modo
 
 y_ruido = getaudiodata(recObj);
 
+if exist('start_delay')
+    t_yrf =  Tt + 0.5 + start_delay/1000;
+else
+    t_yrf =  Tt + 0.5 + 0.1;
+end
+    
 %% Análise no TEMPO
-t_yr = linspace(0, Tt + 0.5, length(y_ruido));
+t_yr = linspace(0, t_yrf, length(y_ruido));
 
 figure('Name', 'Sinal Original no Tempo', 'Position', [img_ph img_pv img_w img_h])
     % subplot(211)
@@ -116,14 +123,14 @@ figure('Name', 'Sinal Original no Tempo', 'Position', [img_ph img_pv img_w img_h
 %     grid on;
 %     p2.LineWidth = 1.5;
 
-figure('Name', 'Sinal Recebido no Tempo', 'Position', [img_ph img_pv img_w img_h])
-    plot(t_yr,y_ruido,'r');
-    title('Sinal Recebido')
-    ylabel('Amplitude')
-    xlabel('Tempo [ms]')
-    % ylim([-0.2 1.2])
-    % xlim([0 Tt*1.1])
-    grid on;
+% figure('Name', 'Sinal Recebido no Tempo', 'Position', [img_ph img_pv img_w img_h])
+%     plot(t_yr,y_ruido,'r');
+%     title('Sinal Recebido')
+%     ylabel('Amplitude')
+%     xlabel('Tempo [ms]')
+%     % ylim([-0.2 1.2])
+%     % xlim([0 Tt*1.1])
+%     grid on;
 
 
 figure('Name', 'Sinais no Tempo - upsample', 'Position', [img_ph img_pv img_w img_h])
@@ -132,7 +139,7 @@ figure('Name', 'Sinais no Tempo - upsample', 'Position', [img_ph img_pv img_w im
     ylabel('Amplitude')
     xlabel('Tempo [ms]')
     % ylim([-0.2 1.2])
-    xlim([0 Tt*1.1])
+    % xlim([0 Tt*1.1])
     grid on;
     % p3.LineWidth = 1.5;
 
@@ -142,19 +149,19 @@ figure('Name', 'Sinais no Tempo - upsample', 'Position', [img_ph img_pv img_w im
 
 [Y_ruido, ~, f1, ~] = analisador_de_spectro(y_ruido', Ts_y);
 
-figure('Name', 'Sinal Recebido em Frequencia', 'Position', [img_ph img_pv img_w img_h])
-    plot(f1,10*log10(fftshift(abs(Y_ruido))),'r'); 
-    grid on;
-    title('Sinal Recebido no Piezoelétrico')
-    xlabel('Frequência [Hz]')
-    ylabel('PSD')
+% figure('Name', 'Sinal Recebido em Frequencia', 'Position', [img_ph img_pv img_w img_h])
+%     plot(f1,10*log10(fftshift(abs(Y_ruido))),'r'); 
+%     grid on;
+%     title('Sinal Recebido no Piezoelétrico')
+%     xlabel('Frequência [Hz]')
+%     ylabel('PSD')
 
-figure('Name', 'Sinal Recebido Semilog', 'Position', [img_ph img_pv img_w img_h])
-    semilogx(f1,abs(Y_ruido),'r'); 
-    grid on;
-    title('Sinal Recebido no Piezoelétrico')
-    xlabel('Frequência')
-    ylabel('PSD')
+% figure('Name', 'Sinal Recebido Semilog', 'Position', [img_ph img_pv img_w img_h])
+%     semilogx(f1,abs(Y_ruido),'r'); 
+%     grid on;
+%     title('Sinal Recebido no Piezoelétrico')
+%     xlabel('Frequência')
+%     ylabel('PSD')
 
 
 %% Filtragem do sinal recebido:
@@ -175,5 +182,6 @@ end
 
 %% Avaliação de Desempenho por BER
 [n_err, ber] = biterr(x, y);
+ber_est = 100 * n_err/n;
 
-fprintf('n = %d; Tb = %.3f; n_err = %i;ber = %3f\n', n, Tb, n_err, ber);
+fprintf('n = %d; Tb = %.3f; n_err = %i;ber = %3f; BER = %.2f%%\n', n, Tb, n_err, ber, ber_est);
