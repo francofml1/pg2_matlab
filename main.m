@@ -26,7 +26,7 @@ img_pv = 400;
 line_w = 1.5;
 
 if modo
-    myMQTT = mqtt('tcp://localhost');       % objeto MQTT
+    myMQTT = mqtt('tcp://localhost','ClientID','MatlabMQTT');       % objeto MQTT
     data_topic = 'd';                       % tópico para publicacao de dados
     Fs_y = 44100;                           % taxa de amostragem do audio
     Ts_y = 1/Fs_y;                          % período de amostragem do audio
@@ -42,7 +42,7 @@ if modo
     n_msg = 10;    % Comprimento da mensagem
     n = n_msg + n_prefix;         % Numero de bits da Sequencia (Bitstream)
     
-    Tb = 1000e-3;    % Tempo de bit
+    Tb = 100e-3;    % Tempo de bit
     Ts = Tb;        % Período de amostragem
     Fs = 1 / Ts;    % Taxa de amostragem (amostras/s)
     nsamp = 4;      % Taxa de Oversampling
@@ -178,8 +178,8 @@ else
 end
 
 % Reamostragem (downsample)
-y = intdump(y_ruido,nsamp);
-t_y = 0:Tb:length(y)*Tb;
+y = intdump(y_up,nsamp);
+t_y = 0:Tb:(length(y)-1)*Tb;
 
 figure('Name', 'Sinal Recebido Downsaple', 'Position', [img_ph img_pv img_w img_h])
     plot(t_y, y, '*-r');
