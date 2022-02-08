@@ -5,12 +5,12 @@
 % módulo:
 y_abs = abs(y_ruido);
 
-% tyup = 0:Tb/2:t_yr(end);
+% ty_s = 0:Tb/2:t_yr(end);
 % ty = 0:Tb:t_yr(end);
-tyup = 0:Tb/2:t_x(end);
-ty = t_x;
-yup = zeros(size(tyup));
-y = zeros(size(ty));
+ty_s = 0:Tb/(nsamp*2):t_x(end);
+t_yup = t_xup;
+yup_s = zeros(size(ty_s));
+y_up = zeros(size(t_yup));
 
 soma = [];
 aux = find(y_abs > 0.05);
@@ -22,7 +22,7 @@ end
 % idx_ti = 1;
 
 iy = 1;
-for i = 1:length(tyup)-1;
+for i = 1:length(ty_s)-1;
     tib = t_yr(idx_ti);
     tfb = tib + Tb/2;
     aux = find(t_yr >= tfb);
@@ -34,15 +34,15 @@ for i = 1:length(tyup)-1;
 
     soma(i) = sum(y_abs(idx_ti:idx_tf));
     if soma(i) > 20
-        yup(i) = 1;
+        yup_s(i) = 1;
     end
 
 
     if not(bitand(i, 1))
         % disp('i= ' + string(i));
         % disp('iy= ' + string(iy));
-        if not((yup(i) == 0) && (yup(i-1) == 0))
-            y(iy) = 1;
+        if not((yup_s(i) == 0) && (yup_s(i-1) == 0))
+            y_up(iy) = 1;
         end
         iy = iy + 1;
     end
@@ -59,8 +59,8 @@ end
 
 % soma2 = [];
 % js=1
-% for j = 1:2:length(yup)-1
-%     soma2(js) = yup(j) + yup(j+1);
+% for j = 1:2:length(yup_s)-1
+%     soma2(js) = yup_s(j) + yup_s(j+1);
 %     js = js + 1;
 % end
 % figure()
@@ -74,19 +74,19 @@ end
 %     ylabel('Amplitude')
 %     xlabel('Tempo [s]')
     
-figure('Name', 'Tratado UPsampled', 'Position', [img_ph img_pv img_w img_h])
-    plot(tyup, yup,'*-r'); 
+figure('Name', 'Tratado Soma', 'Position', [img_ph img_pv img_w img_h])
+    plot(ty_s, yup_s,'*-r'); 
     grid on;
-    title('Sinal Tratado UPsampled')
+    title('Sinal Tratado Soma')
     ylabel('Amplitude')
     xlabel('Tempo [s]')
     ylim([-0.2 1.2])
     % xlim([0 Tt])
     
-figure('Name', 'Tratado Downsampled', 'Position', [img_ph img_pv img_w img_h])
-    plot(ty, y,'*-r'); 
+figure('Name', 'Tratado UPsampled', 'Position', [img_ph img_pv img_w img_h])
+    plot(t_yup, y_up,'*-r'); 
     grid on;
-    title('Sinal Tratado')
+    title('Sinal Tratado UPsampled')
     ylabel('Amplitude')
     xlabel('Tempo [s]')
     ylim([-0.2 1.2])
