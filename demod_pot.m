@@ -57,6 +57,10 @@ for i = 1:length(ty_s)-1;
     idx_ti = idx_tf;
 end
 
+% Reamostragem (downsample)
+y = intdump(y_up,nsamp);
+t_y = 0:Tb:(length(y)-1)*Tb;
+
 % soma2 = [];
 % js=1
 % for j = 1:2:length(yup_s)-1
