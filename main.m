@@ -1,20 +1,20 @@
 %%
-% Transmissão de sinal com modulação OOK
+% TransmissÃ£o de sinal com modulaÃ§Ã£o OOK
 %
-% Níveis [0,1]
+% NÃ­veis [0,1]
 
-%% ############## INICIALIZAÇÃO ##############
+%% ############## INICIALIZAÃ‡ÃƒO ##############
 
 clear all, close all;  clc;
 
 % modo 0 -> carrega dados salvos
 % modo 1 -> envia e aquisita novos dados
 modo = 1;
-dados_salvos = 'I:/Meu Drive/UFES/ENG ELÉTRICA/10º Período/Progeto de Graduação 2/Software/pg2_matlab/dados/n-215_Tb-0.1.mat';
+dados_salvos = 'I:/Meu Drive/UFES/ENG ELÃ‰TRICA/10Âº PerÃ­odo/Progeto de GraduaÃ§Ã£o 2/Software/pg2_matlab/dados/n-215_Tb-0.1.mat';
 % dados_salvos = './dados/n-25_Tb-1.mat';
 
-% demod_modo 0 -> demodulação com potência a cada Tb
-% demod_modo 1 -> demodulação máximos locais
+% demod_modo 0 -> demodulaÃ§Ã£o com potÃªncia a cada Tb
+% demod_modo 1 -> demodulaÃ§Ã£o mÃ¡ximos locais
 demod_modo = 0;
  
 % config para graficos:
@@ -27,23 +27,23 @@ line_w = 1.5;
 
 if modo
     myMQTT = mqtt('tcp://localhost','ClientID','MatlabMQTT');       % objeto MQTT
-    data_topic = 'd';                       % tópico para publicacao de dados
+    data_topic = 'd';                       % tÃ³pico para publicacao de dados
     Fs_y = 44100;                           % taxa de amostragem do audio
-    Ts_y = 1/Fs_y;                          % período de amostragem do audio
+    Ts_y = 1/Fs_y;                          % perÃ­odo de amostragem do audio
     recObj = audiorecorder(Fs_y, 16, 1, 1); % objeto para gravacao de audio
     
     
     %
     %% ##############  PARAMETROS DE ENTRADA  ##############
     
-    M = 2;          % Nível da modulação
-    k = log2(M);    % bits por símbolo (=1 para M = 2)
+    M = 2;          % NÃ­vel da modulaÃ§Ã£o
+    k = log2(M);    % bits por sÃ­mbolo (=1 para M = 2)
     n_prefix = 15;  % Comprimento do prefixo
     n_msg = 10;    % Comprimento da mensagem
     n = n_msg + n_prefix;         % Numero de bits da Sequencia (Bitstream)
     
     Tb = 100e-3;    % Tempo de bit
-    Ts = Tb;        % Período de amostragem
+    Ts = Tb;        % PerÃ­odo de amostragem
     Fs = 1 / Ts;    % Taxa de amostragem (amostras/s)
     nsamp = 4;      % Taxa de Oversampling
     Tt = n * Tb;    % Tempo total do sinal
@@ -52,21 +52,21 @@ if modo
     t_x = linspace(0, Tt, n);
     % Tb = t_x(2) - t_x(1);       % tempo de bit
     
-    % Parâmetros para ESP:
-    start_delay = 2000;      % delay antes de iniciar trasmissão em [s]
+    % ParÃ¢metros para ESP:
+    start_delay = 2000;      % delay antes de iniciar trasmissÃ£o em [s]
     if (Tb > 30e-3)
-        delay_t = Tb/2;    % delay para desligar a saída após uma subida
+        delay_t = Tb/2;    % delay para desligar a saÃ­da apÃ³s uma subida
     else
-        delay_t = 15e-3;    % delay para desligar a saída após uma subida
+        delay_t = 15e-3;    % delay para desligar a saÃ­da apÃ³s uma subida
     end
     
     
-    %% ############## TRANSMISSÃO ##############
+    %% ############## TRANSMISSÃƒO ##############
     
     % Sinal a ser transmitido:
     prefix = [ones(1, 10) zeros(1,5)];
-    % x_rand = ones(n - n_prefix, 1);             % gera sequência de pulsos
-    x_rand = randi([0,M-1],n - n_prefix,1);     % gera sequência aleatória
+    % x_rand = ones(n - n_prefix, 1);             % gera sequÃªncia de pulsos
+    x_rand = randi([0,M-1],n - n_prefix,1);     % gera sequÃªncia aleatÃ³ria
     x = [prefix x_rand'];
     
     % Reamostragem (upsample)
@@ -74,23 +74,23 @@ if modo
     t_xup = linspace(0, Tt, n * nsamp);
     Tt_up = n * Tb * nsamp;
     
-    %% Converte para json e transmite à ESP:
+    %% Converte para json e transmite Ã  ESP:
     struct_data = struct('Tb', Tb, 'Td', delay_t, 'n', n * nsamp, 'x_bit', x_up, 'sd', start_delay);
     json_data = jsonencode(struct_data);
     publish(myMQTT, data_topic, json_data, 'Retain', false)
     
     %::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-    %% ############## RECEPÇÃO ##############
+    %% ############## RECEPÃ‡ÃƒO ##############
     if exist('start_delay')
         t_yrf =  Tt_up + 0.5 + start_delay/1000;
     else
         t_yrf =  Tt_up + 0.5 + 0.1;
     end
     
-    % Recpção por gravação de áudio:
-    fprintf('Iniciando gravação de %.2f seg...\n', t_yrf);
+    % RecpÃ§Ã£o por gravaÃ§Ã£o de Ã¡udio:
+    fprintf('Iniciando gravaÃ§Ã£o de %.2f seg...\n', t_yrf);
     recordblocking(recObj, t_yrf);
-    disp('Fim da gravação');
+    disp('Fim da gravaÃ§Ã£o');
 else
     load(dados_salvos);
 end % if modo
@@ -98,7 +98,7 @@ end % if modo
 y_ruido = getaudiodata(recObj);
 
     
-%% Análise no TEMPO
+%% AnÃ¡lise no TEMPO
 t_yr = linspace(0, t_yrf, length(y_ruido));
 
 figure('Name', 'Sinal Original no Tempo', 'Position', [img_ph img_pv img_w img_h])
@@ -145,22 +145,22 @@ figure('Name', 'Sinais no Tempo - upsample', 'Position', [img_ph img_pv img_w im
 
 
 
-%% Análise em FREQUÊNCIA
+%% AnÃ¡lise em FREQUÃŠNCIA
 
 [Y_ruido, ~, f1, ~] = analisador_de_spectro(y_ruido', Ts_y);
 
 % figure('Name', 'Sinal Recebido em Frequencia', 'Position', [img_ph img_pv img_w img_h])
 %     plot(f1,10*log10(fftshift(abs(Y_ruido))),'r'); 
 %     grid on;
-%     title('Sinal Recebido no Piezoelétrico')
-%     xlabel('Frequência [Hz]')
+%     title('Sinal Recebido no PiezoelÃ©trico')
+%     xlabel('FrequÃªncia [Hz]')
 %     ylabel('PSD')
 
 % figure('Name', 'Sinal Recebido Semilog', 'Position', [img_ph img_pv img_w img_h])
 %     semilogx(f1,abs(Y_ruido),'r'); 
 %     grid on;
-%     title('Sinal Recebido no Piezoelétrico')
-%     xlabel('Frequência')
+%     title('Sinal Recebido no PiezoelÃ©trico')
+%     xlabel('FrequÃªncia')
 %     ylabel('PSD')
 
 
@@ -168,12 +168,12 @@ figure('Name', 'Sinais no Tempo - upsample', 'Position', [img_ph img_pv img_w im
 % filtro(y_ruido, t_yr, [1.5e4], 21, 'high',Fs_y)
 
 
-%% ############## DEMODULAÇÃO ##############
+%% ############## DEMODULAÃ‡ÃƒO ##############
 if demod_modo
-    % Demodulação com máximos locais:
+    % DemodulaÃ§Ã£o com mÃ¡ximos locais:
     demod_max_loc;
 else
-    % Demodulação com potência:
+    % DemodulaÃ§Ã£o com potÃªncia:
     demod_pot;
 end
 
@@ -193,9 +193,9 @@ figure('Name', 'Sinal Recebido Downsaple', 'Position', [img_ph img_pv img_w img_
 
 
 %% Salvar workspace:
-% save('./dados/n-'+string(n)+'_Tb-'+string(Tb)+'.mat')
+% save('./dados/' + string(datestr(datetime('now'),'yymmddHHMMSS')) + 'n-' + string(n) + '_Tb-' + string(Tb_x_up) + '.mat')
 
-%% Avaliação de Desempenho por BER
+%% AvaliaÃ§Ã£o de Desempenho por BER
 [n_err, ber] = biterr(x, y);
 ber_est = 100 * n_err/n;
 
