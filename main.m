@@ -5,7 +5,8 @@
 
 %% ############## INICIALIZAÇÃO ##############
 
-clear all, close all;  clc;
+clear all, close all;
+% clc;
 
 % op_mode 0 -> carrega dados salvos
 % op_mode 1 -> envia e aquisita novos dados
@@ -27,26 +28,26 @@ img_pv = 400;
 line_w = 1.5;
 
 if op_mode
-    myMQTT = mqtt('tcp://localhost','ClientID','MatlabMQTT');       % objeto MQTT
-    data_topic = 'd';                       % tópico para publicacao de dados
-    Fs_audio = 44100;                           % taxa de amostragem do audio
-    Ts_audio = 1/Fs_audio;                          % período de amostragem do audio
-    recObj = audiorecorder(Fs_audio, 16, 1, 1); % objeto para gravacao de audio
-    
-    
-    %
     %% ##############  PARAMETROS DE ENTRADA  ##############
     
-    M = 2;          % Nível da modulação
-    k = log2(M);    % bits por símbolo (=1 para M = 2)
-    n_prefix = 15;  % Comprimento do prefixo
-    n_msg = 50;     % Comprimento da mensagem
-    n = n_msg + n_prefix;         % Numero de bits da Sequencia (Bitstream)
+    M = 2;                                      % Nível da modulação
+    k = log2(M);                                % bits por símbolo (=1 para M = 2)
+    n_ones_prefix = 3;                          % Quantidade de 1's do prefixo
+    n_zeros_prefix = 2;                         % Quantidade de 0's do prefixo
+    n_prefix = n_ones_prefix + n_zeros_prefix;  % Comprimento do prefixo
+    n_msg = 30;                                 % Comprimento da mensagem
+    n = n_msg + n_prefix;                       % Numero de bits da Sequencia (Bitstream)
     
-    Tb_x_up = 200e-3;       % Tempo de bit do sinal transmitido
+    Tb_x_up = 100e-3;               % Tempo de bit do sinal transmitido
     Ts_x_up = Tb_x_up;      % Período de amostragem do sinal transmitido
     Fs_x_up = 1 / Ts_x_up;  % Taxa de amostragem (amostras/s) do sinal transmitido
     nsamp = 4;              % Taxa de Oversampling
+    
+    Fs_min_audio = 44100;                               % mínima taxa de amostragem do audio
+    Fs_audio = Fs_x_up * ceil(Fs_min_audio/Fs_x_up);    % taxa de amostragem do audio
+    Ts_audio = 1/Fs_audio;                              % período de amostragem do audio
+    recObj = audiorecorder(Fs_audio, 16, 1, 1);         % objeto para gravacao de audio
+    nsamp_audio = Fs_audio / Fs_x_up;
     
     
     % Parâmetros para ESP:
@@ -61,7 +62,7 @@ if op_mode
     %% ############## TRANSMISSÃO ##############
     
     % Sinal de informação (x_info):
-    prefix = [ones(1, 10) zeros(1,5)];
+    prefix = [ones(1, n_ones_prefix) zeros(1,n_zeros_prefix)];
     % x_rand = ones(n - n_prefix, 1);             % gera sequência de pulsos
     x_rand = randi([0,M-1],n - n_prefix,1);     % gera sequência aleatória
     x_info = [prefix x_rand'];
@@ -75,6 +76,9 @@ if op_mode
     t_x_info = linspace(0, T_x, n);          % vetor de tempo do sinal de informação
 
     %% Converte para json e transmite à ESP:
+    myMQTT = mqtt('tcp://localhost','ClientID','MatlabMQTT');       % objeto MQTT
+    data_topic = 'd';                       % tópico para publicacao de dados
+    
     struct_data = struct('Tb', Tb_x_up, 'Td', delay_t, 'n', length(x_up), 'x_bit', x_up, 'sd', start_delay);
     json_data = jsonencode(struct_data);
     publish(myMQTT, data_topic, json_data, 'Retain', false)
@@ -82,10 +86,11 @@ if op_mode
     %::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
     %% ############## RECEPÇÃO ##############
     if exist('start_delay')
-        T_audio =  T_x + 0.5 + start_delay/1000;
+        T_min_audio =  ceil(T_x + 0.5 + start_delay/1000);
     else
-        T_audio =  T_x + 0.5 + 0.1;
+        T_min_audio =  ceil(T_x + 0.5 + 0.1);
     end
+    T_audio = T_min_audio * ceil(T_min_audio*Fs_audio/nsamp_audio) / (T_min_audio*Fs_audio/nsamp_audio);
     
     % Recpção por gravação de áudio:
     fprintf('Iniciando gravação de %.2f seg...\n', T_audio);
@@ -95,9 +100,9 @@ else
     load(dados_salvos);
 
     if exist('start_delay')
-        T_audio =  T_x + 0.5 + start_delay/1000;
+        T_audio =  ceil(T_x + 0.5 + start_delay/1000);
     else
-        T_audio =  T_x + 0.5 + 0.1;
+        T_audio =  ceil(T_x + 0.5 + 0.1);
     end
 end % if op_mode
 
@@ -107,6 +112,7 @@ y_audio = getaudiodata(recObj)';
     
 %% Análise no TEMPO
 t_y_audio = linspace(0, T_audio, length(y_audio));  % vetor de tempo do audio gravado
+% t_y_audio = 0:Tb_x_up:T_audio;  % vetor de tempo do audio gravado
 
 figure('Name', 'Sinal Original', 'Position', [img_ph img_pv img_w img_h])
 subplot(211)
