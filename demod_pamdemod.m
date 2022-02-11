@@ -25,40 +25,41 @@ y_info = pamdemod(y_pam, M);
 t_y_info = linspace(0, T_x, length(y_info));
 
 %% --------- Gráficos:
+if graph_disable
+    % figure('Name', 'Sinal Recebido', 'Position', [img_ph img_pv img_w img_h])
+    %     plot(t_y_up_int, y_up_int, '*-r');
+    %     title('Sinal Recebido')
+    %     ylabel('Amplitude')
+    %     xlabel('Tempo [s]')
+    %     % ylim([-0.2 1.2])
+    %     % xlim([0 Tt*1.1])
+    %     grid on; hold on;
 
-% figure('Name', 'Sinal Recebido', 'Position', [img_ph img_pv img_w img_h])
-%     plot(t_y_up_int, y_up_int, '*-r');
-%     title('Sinal Recebido')
-%     ylabel('Amplitude')
-%     xlabel('Tempo [s]')
-%     % ylim([-0.2 1.2])
-%     % xlim([0 Tt*1.1])
-%     grid on; hold on;
+    % figure('Name', 'Sinal Recebido PAM', 'Position', [img_ph img_pv img_w img_h])
+    %     plot(t_y_up_int, y_up_pam, '*-r');
+    %     title('Sinal Recebido PAM')
+    %     ylabel('Amplitude')
+    %     xlabel('Tempo [s]')
+    %     % ylim([-0.2 1.2])
+    %     % xlim([0 Tt*1.1])
+    %     grid on; hold on;
 
-% figure('Name', 'Sinal Recebido PAM', 'Position', [img_ph img_pv img_w img_h])
-%     plot(t_y_up_int, y_up_pam, '*-r');
-%     title('Sinal Recebido PAM')
-%     ylabel('Amplitude')
-%     xlabel('Tempo [s]')
-%     % ylim([-0.2 1.2])
-%     % xlim([0 Tt*1.1])
-%     grid on; hold on;
-
-figure('Name', 'Sinal Recebido', 'Position', [img_ph img_pv img_w img_h])
-subplot(211)
-    plot(t_y_info, y_info, '*-r');
-    title('Sinal de Informação Recebido')
-    ylabel('Amplitude')
-    xlabel('Tempo [s]')
-    ylim([-0.2 1.2])
-    % xlim([0 Tt*1.1])
-    grid on; hold on;
-% figure('Name', 'Sinal Recebido PAM', 'Position', [img_ph img_pv img_w img_h])
-subplot(212)
-    plot(t_y_up, y_up, '*-r');
-    title('Sinal Recebido Upsampled')
-    ylabel('Amplitude')
-    xlabel('Tempo [s]')
-    ylim([-0.2 1.2])
-    % xlim([0 Tt*1.1])
-    grid on; hold on;
+    figure('Name', 'Sinal Recebido', 'Position', [img_ph img_pv img_w img_h])
+    subplot(211)
+        plot(t_y_info, y_info, '*-r');
+        title('Sinal de Informação Recebido')
+        ylabel('Amplitude')
+        xlabel('Tempo [s]')
+        ylim([-0.2 1.2])
+        % xlim([0 Tt*1.1])
+        grid on; hold on;
+    % figure('Name', 'Sinal Recebido PAM', 'Position', [img_ph img_pv img_w img_h])
+    subplot(212)
+        plot(t_y_up, y_up, '*-r');
+        title('Sinal Recebido Upsampled')
+        ylabel('Amplitude')
+        xlabel('Tempo [s]')
+        ylim([-0.2 1.2])
+        % xlim([0 Tt*1.1])
+        grid on; hold on;
+end % if graph_disable

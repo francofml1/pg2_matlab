@@ -18,7 +18,11 @@ dados_salvos = './dados/n-115_Tb-0.1.mat';
 % demod_mode 1 -> demodulação máximos locais
 % demod_mode 2 -> demodulação com pamdemod
 demod_mode = 2;
- 
+
+% graph_disable = 0 => plota gráficos
+% graph_disable = 1 => não plota gráficos
+graph_disable = 0;
+
 % config para graficos:
 fator = 170;
 img_w = 5 * fator;
@@ -35,7 +39,7 @@ if op_mode
     n_ones_prefix = 3;                          % Quantidade de 1's do prefixo
     n_zeros_prefix = 2;                         % Quantidade de 0's do prefixo
     n_prefix = n_ones_prefix + n_zeros_prefix;  % Comprimento do prefixo
-    n_msg = 30;                                 % Comprimento da mensagem
+    n_msg = 20;                                 % Comprimento da mensagem
     n = n_msg + n_prefix;                       % Numero de bits da Sequencia (Bitstream)
     
     Tb_x_up = 100e-3;               % Tempo de bit do sinal transmitido
@@ -81,7 +85,7 @@ if op_mode
     
     struct_data = struct('Tb', Tb_x_up, 'Td', delay_t, 'n', length(x_up), 'x_bit', x_up, 'sd', start_delay);
     json_data = jsonencode(struct_data);
-    publish(myMQTT, data_topic, json_data, 'Retain', false)
+    % publish(myMQTT, data_topic, json_data, 'Retain', false)
     
     %::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
     %% ############## RECEPÇÃO ##############
@@ -114,47 +118,48 @@ y_audio = getaudiodata(recObj)';
 t_y_audio = linspace(0, T_audio, length(y_audio));  % vetor de tempo do audio gravado
 % t_y_audio = 0:Tb_x_up:T_audio;  % vetor de tempo do audio gravado
 
-figure('Name', 'Sinal Original', 'Position', [img_ph img_pv img_w img_h])
-subplot(211)
-    p1=plot(t_x_info, x_info, '*-b');
-    title('Sinal de Informação Original')
-    ylabel('Amplitude')
-    xlabel('Tempo [s]')
-    ylim([-0.2 1.2])
-    % xlim([0 T_x*1.1])
-    grid on; hold on;
-    % p1.LineWidth = 1.5;
-subplot(212)
-    p2=plot(t_x_up, x_up, '.-b');
-    % p2=plot(t_y_audio, y_demod, 'r');
-    title('Sinal Original upsampled - Transmitido')
-    ylabel('Amplitude')
-    xlabel('Tempo [s]')
-    ylim([-0.2 1.2])
-%     xlim([0 T_x*1.1])
-    grid on;
-%     p2.LineWidth = 1.5;
+if graph_disable
+    figure('Name', 'Sinal Original', 'Position', [img_ph img_pv img_w img_h])
+    subplot(211)
+        p1=plot(t_x_info, x_info, '*-b');
+        title('Sinal de Informação Original')
+        ylabel('Amplitude')
+        xlabel('Tempo [s]')
+        ylim([-0.2 1.2])
+        % xlim([0 T_x*1.1])
+        grid on; hold on;
+        % p1.LineWidth = 1.5;
+    subplot(212)
+        p2=plot(t_x_up, x_up, '.-b');
+        % p2=plot(t_y_audio, y_demod, 'r');
+        title('Sinal Original upsampled - Transmitido')
+        ylabel('Amplitude')
+        xlabel('Tempo [s]')
+        ylim([-0.2 1.2])
+    %     xlim([0 T_x*1.1])
+        grid on;
+    %     p2.LineWidth = 1.5;
 
-figure('Name', 'Áudio Gravado', 'Position', [img_ph img_pv img_w img_h])
-subplot(211)
-    plot(t_y_audio,y_audio,'r');
-    title('Áudio Gravado')
-    ylabel('Amplitude')
-    xlabel('Tempo [s]')
-    % ylim([-0.2 1.2])
-    % xlim([0 T_x*1.1])
-    grid on;
-% figure('Name', 'Sinais no Tempo - upsample', 'Position', [img_ph img_pv img_w img_h])
-subplot(212)
-    plot(t_y_audio, abs(y_audio), 'r');
-    title('Modulo do sinal de áudio Gravado')
-    ylabel('Amplitude')
-    xlabel('Tempo [s]')
-    % ylim([-0.2 1.2])
-    % xlim([0 T_x*1.1])
-    grid on;
-    % p3.LineWidth = 1.5;
-
+    figure('Name', 'Áudio Gravado', 'Position', [img_ph img_pv img_w img_h])
+    subplot(211)
+        plot(t_y_audio,y_audio,'r');
+        title('Áudio Gravado')
+        ylabel('Amplitude')
+        xlabel('Tempo [s]')
+        % ylim([-0.2 1.2])
+        % xlim([0 T_x*1.1])
+        grid on;
+    % figure('Name', 'Sinais no Tempo - upsample', 'Position', [img_ph img_pv img_w img_h])
+    subplot(212)
+        plot(t_y_audio, abs(y_audio), 'r');
+        title('Modulo do sinal de áudio Gravado')
+        ylabel('Amplitude')
+        xlabel('Tempo [s]')
+        % ylim([-0.2 1.2])
+        % xlim([0 T_x*1.1])
+        grid on;
+        % p3.LineWidth = 1.5;
+end % if graph_disable
 
 
 %% Análise em FREQUÊNCIA
