@@ -9,20 +9,23 @@ clear all, close all;
 % clc;
 
 % op_mode 0 -> carrega dados salvos
-% op_mode 1 -> envia e aquisita novos dados e analiza
-% op_mode 2 -> envia e aquisita novos dados e NÃO analiza
-op_mode = 2;
-% dados_salvos = 'I:/Meu Drive/UFES/ENG ELÉTRICA/10º Período/Progeto de Graduação 2/Software/pg2_matlab/dados/n-215_Tb-0.1.mat';
-dados_salvos = './dados/n-115_Tb-0.1.mat';
+% op_mode 1 -> envia e aquisita novos dados e demodula
+% op_mode 2 -> envia e aquisita novos dados e NÃO demodula
+op_mode = 0;
+
+% dados_salvos = 'I:/Meu Drive/UFES/ENG ELÉTRICA/10º Período/Progeto de Graduação 2/Software/pg2_matlab/dados/220218144119n-55_Tb-0.1.mat';
+% dados_salvos = 'E:/Franco/2S Drive/Documentos/PG2/dados/220210091708n-115_Tb-0.1.mat';
+dados_salvos = './dados/2022_02_18_16_02_43_FULL_3n-153_Tb-0.1.mat';
 
 % demod_mode 0 -> demodulação com potência a cada Tb_x_up
 % demod_mode 1 -> demodulação máximos locais
 % demod_mode 2 -> demodulação com pamdemod
+% demod_mode 3 -> demodulação com pamdemod e todo o sinal - não pronto
 demod_mode = 2;
 
-% graph_disable = 0 => plota gráficos
-% graph_disable = 1 => não plota gráficos
-graph_disable = 0;
+% graph_enable = 0 => plota gráficos
+% graph_enable = 1 => não plota gráficos
+graph_enable = 1;
 
 % config para graficos:
 fator = 170;
@@ -32,18 +35,27 @@ img_ph = 800;
 img_pv = 400;
 line_w = 1.5;
 
-% Taxa de transmissão [amostras por segundo]
-% Rx_array = [1:0.1:19.9 20:1:30];
-Rx_array = [10:0.1:19.9 20:1:30];
-% Rx_array = 10;
-for Rx = Rx_array
-    if op_mode
+if op_mode
+    x_info_full = [];
+    y_info_full = [];
+
+    % Taxa de transmissão [amostras por segundo]
+    % Rx_array = [1:0.1:19.9 20:1:30];
+    Rx_array_base = [16:1:30];
+    Rx_array = [];
+
+    for freq = Rx_array_base
+    Rx_array = [Rx_array ones(1,3)*freq];
+    end
+
+    % Rx_array = 10;
+    for Rx = Rx_array
         %% ##############  PARAMETROS DE ENTRADA  ##############
         
         M = 2;                                      % Nível da modulação
         k = log2(M);                                % bits por símbolo (=1 para M = 2)
-        n_ones_prefix = 3;                          % Quantidade de 1's do prefixo
-        n_zeros_prefix = 2;                         % Quantidade de 0's do prefixo
+        n_ones_prefix = 1;                          % Quantidade de 1's do prefixo
+        n_zeros_prefix = 0;                         % Quantidade de 0's do prefixo
         n_prefix = n_ones_prefix + n_zeros_prefix;  % Comprimento do prefixo
         n_msg = 50;                                 % Comprimento da mensagem
         n = n_msg + n_prefix;                       % Numero de bits da Sequencia (Bitstream)
@@ -107,123 +119,49 @@ for Rx = Rx_array
         fprintf('Iniciando gravação de %.2f seg...\n', T_audio);
         recordblocking(recObj, T_audio);
         disp('Fim da gravação');
-    else
-        load(dados_salvos);
 
-        if exist('start_delay')
-            T_audio =  ceil(T_x + 0.5 + start_delay/1000);
-        else
-            T_audio =  ceil(T_x + 0.5 + 0.1);
-        end
-    end % if op_mode
-
-    %%
-
-    if op_mode == 2
-        %% Salvar workspace:
-        save('./dados/' + string(datestr(datetime('now'),'yymmddHHMMSS')) + 'n-' + string(n) + '_Tb-' + string(Tb_x_up) + '.mat')
-    else
         y_audio = getaudiodata(recObj)';
 
-            
-        %% Análise no TEMPO
-        t_y_audio = linspace(0, T_audio, length(y_audio));  % vetor de tempo do audio gravado
-        % t_y_audio = 0:Tb_x_up:T_audio;  % vetor de tempo do audio gravado
-
-        if graph_disable
-            figure('Name', 'Sinal Original', 'Position', [img_ph img_pv img_w img_h])
-            subplot(211)
-                p1=plot(t_x_info, x_info, '*-b');
-                title('Sinal de Informação Original')
-                ylabel('Amplitude')
-                xlabel('Tempo [s]')
-                ylim([-0.2 1.2])
-                % xlim([0 T_x*1.1])
-                grid on; hold on;
-                % p1.LineWidth = 1.5;
-            subplot(212)
-                p2=plot(t_x_up, x_up, '.-b');
-                % p2=plot(t_y_audio, y_demod, 'r');
-                title('Sinal Original upsampled - Transmitido')
-                ylabel('Amplitude')
-                xlabel('Tempo [s]')
-                ylim([-0.2 1.2])
-            %     xlim([0 T_x*1.1])
-                grid on;
-            %     p2.LineWidth = 1.5;
-
-            figure('Name', 'Áudio Gravado', 'Position', [img_ph img_pv img_w img_h])
-            subplot(211)
-                plot(t_y_audio,y_audio,'r');
-                title('Áudio Gravado')
-                ylabel('Amplitude')
-                xlabel('Tempo [s]')
-                % ylim([-0.2 1.2])
-                % xlim([0 T_x*1.1])
-                grid on;
-            % figure('Name', 'Sinais no Tempo - upsample', 'Position', [img_ph img_pv img_w img_h])
-            subplot(212)
-                plot(t_y_audio, abs(y_audio), 'r');
-                title('Modulo do sinal de áudio Gravado')
-                ylabel('Amplitude')
-                xlabel('Tempo [s]')
-                % ylim([-0.2 1.2])
-                % xlim([0 T_x*1.1])
-                grid on;
-                % p3.LineWidth = 1.5;
-        end % if graph_disable
 
 
-        %% Análise em FREQUÊNCIA
-
-        [Y_audio, ~, f1, ~] = analisador_de_spectro(y_audio, Ts_audio);
-
-        % figure('Name', 'Sinal Recebido em Frequencia', 'Position', [img_ph img_pv img_w img_h])
-        %     plot(f1,10*log10(fftshift(abs(Y_audio))),'r'); 
-        %     grid on;
-        %     title('Sinal Recebido no Piezoelétrico')
-        %     xlabel('Frequência [Hz]')
-        %     ylabel('PSD')
-
-        % figure('Name', 'Sinal Recebido Semilog', 'Position', [img_ph img_pv img_w img_h])
-        %     semilogx(f1,abs(Y_audio),'r'); 
-        %     grid on;
-        %     title('Sinal Recebido no Piezoelétrico')
-        %     xlabel('Frequência')
-        %     ylabel('PSD')
-
-
-        %% Filtragem do sinal recebido:
-        % filtro(y_audio, t_y_audio, [1.5e4], 21, 'high',Fs_audio)
-
-
-        %% ############## DEMODULAÇÃO ##############
-        if demod_mode == 0
-            % Demodulação com potência:
-            demod_pot;
-        elseif demod_mode == 1
-            % Demodulação com máximos locais:
-            demod_max_loc;
-        elseif demod_mode == 2
-            % Demodulação com pamdemod:
-            demod_pamdemod;
-        end
-
-        %%
-        % figure('Name', 'Sinal Recebido Downsaple', 'Position', [img_ph img_pv img_w img_h])
-        %     plot(t_y, y, '*-r');
-        %     title('Sinal Recebido Downsaple')
-        %     ylabel('Amplitude')
-        %     xlabel('Tempo [s]')
-        %     ylim([-0.2 1.2])
-        %     % xlim([0 T_x*1.1])
-        %     grid on; hold on;
-        %     % p1.LineWidth = 1.5;
-
-        %% Avaliação de Desempenho por BER
-        [n_err, ber] = biterr(x_info, y_info);
+        if op_mode == 2
+            %Salvar workspace:
+            save('./dados/' + string(datestr(datetime('now'),'yyyy_mm_dd_HH_MM_SS')) + '__n-' + string(n) + '_Tb-' + string(Tb_x_up) + '.mat')
+        else
+            try
+                demodulacao;
+                if demod_mode == 3
+                    x_info_full = [x_info_full x_info];
+                    y_info_full = [y_info_full y_info];
+                    
+                    save('./dados/' + string(datestr(datetime('now'),'yyyy_mm_dd_HH_MM_SS')) + '_FULL_3n-' + string(3*n) + '_Tb-' + string(Tb_x_up) + '.mat')
+                end
+            catch
+                save('./dados/' + string(datestr(datetime('now'),'yyyy_mm_dd_HH_MM_SS')) + '_FULL_3n-' + string(3*n) + '_Tb-' + string(Tb_x_up) + '.mat')
+            end
+        end % if op_mode ==2
+    end % for Rx = Fs_array
+    if demod_mode == 3
+        [n_err, ber] = biterr(x_info_full, y_info_full);
         ber_est = 100 * n_err/n;
 
+        fprintf('\nResultado final: \n');
         fprintf('n = %d; Tb_x_up = %.3f; n_err = %i;ber = %3f; BER = %.2f%%\n', n, Tb_x_up, n_err, ber, ber_est);
-    end % if op_mode ==2
-end % for Rx = Fs_array
+
+    end
+
+    
+    
+else
+    load(dados_salvos);
+    graph_enable=1;
+
+    demodulacao;
+    
+    % if exist('start_delay')
+    %     T_audio =  ceil(T_x + 0.5 + start_delay/1000);
+    % else
+    %     T_audio =  ceil(T_x + 0.5 + 0.1);
+    % end
+end % if op_mode
+
