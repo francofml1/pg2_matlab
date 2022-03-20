@@ -1,13 +1,28 @@
 % módulo:
 y_abs = abs(y_audio);
+y_abs_bin = y_abs;
+
+y_abs_bin(y_abs > 0.1) = 1;
+y_abs_bin(y_abs < 0.1) = 0;
+
+zeros_comp = (floor((length(y_abs_bin))/nsamp_audio)+1)*nsamp_audio - length(y_abs_bin)
+
+y_abs_bin_comp = [y_abs_bin zeros(1,zeros_comp)];
 
 % Reamostragem (downsample) - de Ts do audio para Ts do sinal transmitido
-y_up_int = intdump(y_abs, nsamp_audio);
+y_up_int = intdump(y_abs_bin_comp, nsamp_audio);
+
+y_up_int_bin = y_up_int;
+
+y_up_int_bin(y_abs > 2e-4) = 1;
+y_up_int_bin(y_abs < 2e-4) = 0;
+
+
 % t_y_up_int = 0:Tb_x_up:(length(y_up_int)-1) * Tb_x_up;
-t_y_up_int = linspace(0, T_audio, length(y_up_int));
+t_y_up_int = linspace(0, T_audio, length(y_up_int_bin));
 
 % Demodulação em alta amostragem (Ts do sinal transmitido)
-y_up_pam = (y_up_int * 2) - max(y_up_int);
+y_up_pam = (y_up_int_bin * 2) - max(y_up_int_bin);
 y_up_demod = pamdemod(y_up_pam, M);
 
 first_1 = find(y_up_demod == 1);

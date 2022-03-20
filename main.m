@@ -10,9 +10,9 @@ clear all, close all;
 
 % op_mode 0 -> carrega dados salvos
 % op_mode 1 -> envia e aquisita novos dados
-op_mode = 1;
+op_mode = 0;
 % dados_salvos = 'I:/Meu Drive/UFES/ENG ELÉTRICA/10º Período/Progeto de Graduação 2/Software/pg2_matlab/dados/n-215_Tb-0.1.mat';
-dados_salvos = './dados/n-115_Tb-0.1.mat';
+dados_salvos = './dados1/n-65_Tb-0.2.mat';
 
 % demod_mode 0 -> demodulação com potência a cada Tb_x_up
 % demod_mode 1 -> demodulação máximos locais
@@ -21,7 +21,7 @@ demod_mode = 2;
 
 % graph_disable = 0 => plota gráficos
 % graph_disable = 1 => não plota gráficos
-graph_disable = 0;
+graph_disable = 1;
 
 % config para graficos:
 fator = 170;
