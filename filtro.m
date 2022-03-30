@@ -21,9 +21,9 @@ function [] = filtro(sinal, t, fct_Hz, ordem, h_tipo, Fs)
     sinal_filt = filter(h, 1, sinal)'; % implementado como uma convolucao entre sinal e filtro
 
     %$ Medição do Espectro
-    [Y, ~, f1, ~] = analisador_de_spectro(sinal', Ts);
+    [Y, ~, f1, ~] = analisador_de_spectro(sinal, Ts);
 
-    [Y_filt, ~, f2, ~] = analisador_de_spectro(sinal_filt, Ts);
+    [Y_filt, ~, f2, ~] = analisador_de_spectro(sinal_filt', Ts);
 
     figure('Name', 'Sinais em Frequencia')
     subplot(2, 2, 1)
@@ -32,7 +32,7 @@ function [] = filtro(sinal, t, fct_Hz, ordem, h_tipo, Fs)
     title('Sinal Recebido no Piezoelétrico')
     xlabel('Frequência [Hz]')
     ylabel('PSD')
-    subplot(2, 2, 3)
+    subplot(2, 2, 2)
     plot(f2, 10 * log10(fftshift(abs(Y_filt))), 'k');
     grid on;
     title('Sinal Recebido no Piezoelétrico FILTRADO')
@@ -40,7 +40,7 @@ function [] = filtro(sinal, t, fct_Hz, ordem, h_tipo, Fs)
     ylabel('PSD')
 
     % figure('Name', 'Sinais no Tempo', 'Position', [50 50 img_w img_h])
-    subplot(222)
+    subplot(223)
     p3 = plot(t, (sinal), 'r');
     title('Sinal Recebido no Piezoelétrico')
     ylabel('Amplitude [V]')

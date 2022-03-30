@@ -72,3 +72,5 @@ esp_Tx/.vscode/
 esp_Tx/platformio-device-monitor*.log
 dados*/
 published*/
+html/*
+*.mat

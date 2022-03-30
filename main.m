@@ -15,7 +15,7 @@ op_mode = 0;
 
 % dados_salvos = 'I:/Meu Drive/UFES/ENG ELÉTRICA/10º Período/Progeto de Graduação 2/Software/pg2_matlab/dados/220218144119n-55_Tb-0.1.mat';
 % dados_salvos = 'E:/Franco/2S Drive/Documentos/PG2/dados/220210091708n-115_Tb-0.1.mat';
-dados_salvos = './dados/2022_02_18_16_02_43_FULL_3n-153_Tb-0.1.mat';
+dados_salvos = './dados/2022_02_18_16_00_35_FULL_3n-153_Tb-0.1.mat';
 
 % demod_mode 0 -> demodulação com potência a cada Tb_x_up
 % demod_mode 1 -> demodulação máximos locais
